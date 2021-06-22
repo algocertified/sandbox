@@ -1,7 +1,9 @@
 from algosdk.v2client import algod, indexer
+import os
 
+if _algod_token := os.environ.get('ALGOD_TOKEN') is None:
+    raise ValueError(f"algod token environment variable 'ALGOD_TOKEN' not set.")
 
-_algod_token = "LGlsGlaSiY37Y3xKQly071AsDwS6PeP73mAaFJLF"
 _headers = {
         "X-API-Key": _algod_token,
     }
