@@ -1,7 +1,10 @@
 import json
-
-
 # Methods copied from https://github.com/algorand/docs/blob/master/examples/assets/v2/python/asset_example.py.
+import time
+
+from algosdk.error import IndexerHTTPError
+
+
 class AlgorandTestHelper:
 
     def __init__(self, algodclient, logger):
@@ -52,3 +55,16 @@ class AlgorandTestHelper:
                 self.logger.debug("Asset ID: {}".format(scrutinized_asset["asset-id"]))
                 self.logger.debug(json.dumps(scrutinized_asset, indent=4))
                 break
+
+
+def wait_for_indexer_to_complete(func, *args, **kwargs):
+    """Waits until the func(*args, **kwargs) completes.
+
+    This function is needed in the cases such as looking up TASA ID right after its creation.
+    """
+    while True:
+        try:
+            return func(*args, **kwargs)
+
+        except IndexerHTTPError:
+            time.sleep(1)
