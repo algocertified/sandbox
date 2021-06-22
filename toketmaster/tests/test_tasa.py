@@ -1,18 +1,7 @@
-import time
 import unittest
 
-from algosdk.error import IndexerHTTPError
-
 from toketmaster.src import client, models, tasa
-
-
-def wait_to_complete(func, *args, **kwargs):
-    while True:
-        try:
-            return func(*args, **kwargs)
-
-        except IndexerHTTPError:
-            time.sleep(1)
+from toketmaster.algorand_test_helper import wait_for_indexer_to_complete
 
 
 class TestTasaIsCreated(unittest.TestCase):
@@ -34,7 +23,7 @@ class TestTasaIsCreated(unittest.TestCase):
                                             url="domvanin.org")
 
         # transaction doesn't post immediately
-        r = wait_to_complete(func=client.indexer_client.transaction, txid=tasa_creation_id)
+        r = wait_for_indexer_to_complete(func=client.indexer_client.transaction, txid=tasa_creation_id)
         tx_params = r['transaction']['asset-config-transaction']['params']
 
         assert tx_params['creator'] == self.toketmaster_wallet.public_key
@@ -68,7 +57,7 @@ class TestTasaIsTransferred(unittest.TestCase):
                                              unit_name="TASA",
                                              asset_name="Domvanin",
                                              url="domvanin.org")
-        self.tasa_id = wait_to_complete(func=tasa.get_tasa_id, tasa_create_txid=_tasa_creation_id)
+        self.tasa_id = wait_for_indexer_to_complete(func=tasa.get_tasa_id, tasa_create_txid=_tasa_creation_id)
 
     def test_tasa_is_transferred(self):
         transfer_id = tasa.transfer_tasa(
@@ -77,7 +66,7 @@ class TestTasaIsTransferred(unittest.TestCase):
             tasa_id=self.tasa_id,
             fee=8)
 
-        r = wait_to_complete(func=client.indexer_client.transaction, txid=transfer_id)
+        r = wait_for_indexer_to_complete(func=client.indexer_client.transaction, txid=transfer_id)
         tx_params = r['transaction']['asset-transfer-transaction']
 
         assert tx_params['amount'] == 1
