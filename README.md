@@ -1,7 +1,7 @@
-# Toketmaster Algorand Sandbox
+# Tiquet Algorand Sandbox
 
 This is a fast way to create and configure an Algorand development environment with [Algod](https://github.com/algorand/go-algorand) and [Indexer](https://github.com/algorand/indexer) for
-developing and testing Toketmaster.
+developing and testing Tiquet.
 
 You will need to install **Docker Compose**, [instructions are available here](https://docs.docker.com/compose/install/).
 
@@ -44,18 +44,18 @@ Sandbox creates the following API endpoints:
 * `indexer`:
   * address: `http://localhost:8980`
 
-### Toketmaster
+### Tiquet
 
-Run the following to execute all toketmaster tests against the private network,
+Run the following to execute all Tiquet tests against the private network,
 
 ```
-docker exec toketmaster-privnet pytest -s
+docker exec tiquet-privnet pytest -s
 ```
 
 To do the same against the `testnet`, run the following,
 
 ```
-docker exec toketmaster-testnet pytest -s
+docker exec tiquet-testnet pytest -s
 ```
 
 ## Getting Started

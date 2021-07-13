@@ -58,7 +58,7 @@ services:
     container_name: "tiquet-privnet"
     build:
       context: .
-      dockerfile: ./images/toketmaster/Dockerfile
+      dockerfile: ./images/tiquet/Dockerfile
     environment:
       ALGOD_ADDR: "http://localhost:4001"
       ALGOD_TOKEN: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -66,8 +66,8 @@ services:
       NETWORK: "privnet"
     volumes:
       - type: bind
-        source: ./toketmaster
-        target: /root/toketmaster
+        source: ./tiquet
+        target: /root/tiquet
     depends_on:
       - algod
 
@@ -75,7 +75,7 @@ services:
     container_name: "tiquet-testnet"
     build:
       context: .
-      dockerfile: ./images/toketmaster/Dockerfile
+      dockerfile: ./images/tiquet/Dockerfile
     environment:
       ALGOD_ADDR: "https://testnet-algorand.api.purestake.io/ps2"
       ALGOD_TOKEN: "LGlsGlaSiY37Y3xKQly071AsDwS6PeP73mAaFJLF"
@@ -83,7 +83,7 @@ services:
       NETWORK: "testnet"
     volumes:
       - type: bind
-        source: ./toketmaster
-        target: /root/toketmaster
+        source: ./tiquet
+        target: /root/tiquet
     depends_on:
       - algod

@@ -13,7 +13,7 @@ class NetworkAccounts:
     _MNEMONICS_FILE_ENVVAR="MNEMONICS_FILE"
 
     # Indices into accounts list.
-    _TOKETMASTER_IDX = 0
+    _TIQUET_IDX = 0
     _ISSUER_IDX = 1
     _FRAUDSTER_IDX = 2
 
@@ -50,8 +50,8 @@ class NetworkAccounts:
 
         return os.environ.get(self._MNEMONICS_FILE_ENVVAR)
 
-    def get_toketmaster_account(self):
-        return self.accounts[self._TOKETMASTER_IDX]
+    def get_tiquet_account(self):
+        return self.accounts[self._TIQUET_IDX]
 
     def get_issuer_account(self):
         return self.accounts[self._ISSUER_IDX]
@@ -60,5 +60,5 @@ class NetworkAccounts:
         return self.accounts[self._FRAUDSTER_IDX]
 
     def get_accounts(self):
-        return (self.get_toketmaster_account(), self.get_issuer_account(),
+        return (self.get_tiquet_account(), self.get_issuer_account(),
             self.get_fraudster_account())
