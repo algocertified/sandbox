@@ -278,8 +278,8 @@ sandbox () {
   clean () {
     echo "* docker-compose down"
     dc down -t 0                                   || true
-    echo "* docker rmi sandbox_algod sandbox_indexer"
-    docker rmi sandbox_algod sandbox_indexer                   || true
+    echo "* docker rmi sandbox_algod sandbox_indexer sandbox_tiquet-privnet sandbox_tiquet-testnet"
+    docker rmi sandbox_algod sandbox_indexer sandbox_tiquet-privnet sandbox_tiquet-testnet	|| true
     echo "* docker-compose rm -f"
     dc rm -f                                       || true
     echo "* docker rmi $(docker images -f "dangling=true" -q)"
