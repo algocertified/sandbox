@@ -3,3 +3,6 @@
 sandbox.log
 data
 **/__pycache__/**
+
+# Compiled TEAL program files
+*.tok
