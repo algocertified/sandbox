@@ -292,7 +292,7 @@ sandbox () {
   enter () {
     CONTAINER=${2:-}
     if [ -z "$CONTAINER" ]; then
-        err "'enter' requires a container. Available containers: algod, indexer, indexer-db"
+        err "'enter' requires a container. Available containers: algod, indexer, indexer-db, tiquet-privnet, tiquet-testnet"
     fi
     case $CONTAINER in
       algod)
@@ -309,10 +309,20 @@ sandbox () {
         statusline "Entering /bin/bash session in the indexer-db container..."
         dc exec indexer-db /bin/bash
         return
+				;;
+			tiquet-privnet)
+        statusline "Entering /bin/bash session in the tiquet-privnet container..."
+        dc exec tiquet-privnet /bin/bash
+        return
+        ;;
+			tiquet-testnet)
+        statusline "Entering /bin/bash session in the tiquet-testnet container..."
+        dc exec tiquet-testnet /bin/bash
+        return
         ;;
     esac
 
-    err "Cannot enter '$CONTAINER'. Available containers: algod, indexer, indexer-db"
+    err "Cannot enter '$CONTAINER'. Available containers: algod, indexer, indexer-db, tiquet-privnet, tiquet-testnet"
   }
 
 
@@ -452,7 +462,7 @@ sandbox commands:
   reset           -> reset the containers to their initial state.
   clean           -> stops and deletes containers and data directory.
   test            -> runs some tests to demonstrate usage.
-  enter [algod||indexer||indexer-db]
+  enter [algod||indexer||indexer-db|tiquet-privnet|tiquet-testnet]
                   -> enter the sandbox container.
   version         -> print binary versions.
   copyTo <file>   -> copy <file> into the algod. Useful for offline transactions, offline LogicSigs & TEAL work.

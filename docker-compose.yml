@@ -54,8 +54,8 @@ services:
       POSTGRES_PASSWORD: algorand
       POSTGRES_DB: indexer_db
 
-  toketmaster-privnet:
-    container_name: "toketmaster-privnet"
+  tiquet-privnet:
+    container_name: "tiquet-privnet"
     build:
       context: .
       dockerfile: ./images/toketmaster/Dockerfile
@@ -71,8 +71,8 @@ services:
     depends_on:
       - algod
 
-  toketmaster-testnet:
-    container_name: "toketmaster-testnet"
+  tiquet-testnet:
+    container_name: "tiquet-testnet"
     build:
       context: .
       dockerfile: ./images/toketmaster/Dockerfile
