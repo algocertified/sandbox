@@ -1,0 +1,79 @@
+#pragma version 4
+// #pragma version 4
+
+//////////////////////////
+// Application Creation //
+//////////////////////////
+
+// Check txn is for application creation.
+txn ApplicationID
+int 0
+==
+// If yes, create tiquet. 
+bnz tiquet_creation
+// Otherwise, check txn is for opting-in to application. 
+txn OnCompletion
+int OptIn
+==
+bnz optin
+// Otherwise, check txn is making an application call. 
+txn OnCompletion
+int NoOp
+==
+bnz tiquet
+// Otherwise, return false.
+// TODO: Handle other application ops.
+int 0
+return
+b end_tiquet_app
+
+tiquet_creation:
+// Set tiquet price to 99 microAlgos.
+// TODO: Represent price in USD.
+byte "Price"
+int 99
+app_global_put
+int 1
+return
+b end_tiquet_app
+
+/////////////
+// Opt-In  //
+/////////////
+
+optin:
+int 1
+return
+b end_tiquet_app
+
+//////////////////
+// Application  //
+//////////////////
+
+tiquet:
+addr INOJEZ5FFMO7QQOEVCY52VYTW6B5R6DUJV245UCVOVVLTDNKG2NMLQK56A
+// btoi
+int 1
+// pushint 1
+asset_holding_get AssetBalance
+bnz has_tasa
+byte "IsOwner"
+byte "False"
+app_global_put
+int 1
+return
+b end_tiquet_app
+
+has_tasa:
+byte "IsOwner"
+byte "True"
+app_global_put
+int 1
+return
+b end_tiquet_app
+
+/////////////////////
+// Application End //
+/////////////////////
+
+end_tiquet_app:
