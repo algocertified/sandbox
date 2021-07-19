@@ -27,6 +27,10 @@ int 0
 return
 b end_tiquet_app
 
+/////////////////////
+// Tiquet Creation //
+/////////////////////
+
 tiquet_creation:
 // Set tiquet price to 99 microAlgos.
 // TODO: Represent price in USD.
@@ -51,21 +55,39 @@ b end_tiquet_app
 //////////////////
 
 tiquet:
+// Issuer address.
 addr INOJEZ5FFMO7QQOEVCY52VYTW6B5R6DUJV245UCVOVVLTDNKG2NMLQK56A
+// TASA Id.
 int 1
 asset_holding_get AssetBalance
-bnz has_tasa
-byte "IsOwner"
+// Go to initial sale journey if the issuer own's the TASA.
+bnz initial_sale
+// 0th-index value into accounts array, i.e. caller's address. 
 int 0
-app_global_put
+// TASA Id.
+int 1
+asset_holding_get AssetBalance
+// Otherwise, go to resale journey if the caller own's the TASA.
+bnz resale
+// Fail otherwise.
+int 0
+return
+b end_tiquet_app
+
+///////////////////
+// Initial Sale  //
+///////////////////
+
+initial_sale:
 int 1
 return
 b end_tiquet_app
 
-has_tasa:
-byte "IsOwner"
-int 1
-app_global_put
+////////////
+// Resale //
+////////////
+
+resale:
 int 1
 return
 b end_tiquet_app

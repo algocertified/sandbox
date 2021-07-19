@@ -7,7 +7,7 @@ approval_prog="teal/tiquet_app.teal"
 clear_prog="teal/clear.teal"
 
 global_byteslices=0
-global_ints=2
+global_ints=1
 local_byteslices=0
 local_ints=0
 
