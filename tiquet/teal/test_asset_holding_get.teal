@@ -1,5 +1,0 @@
-#pragma version 4
-
-addr INOJEZ5FFMO7QQOEVCY52VYTW6B5R6DUJV245UCVOVVLTDNKG2NMLQK56A
-int 1
-asset_holding_get AssetBalance

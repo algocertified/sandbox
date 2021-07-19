@@ -52,13 +52,11 @@ b end_tiquet_app
 
 tiquet:
 addr INOJEZ5FFMO7QQOEVCY52VYTW6B5R6DUJV245UCVOVVLTDNKG2NMLQK56A
-// btoi
 int 1
-// pushint 1
 asset_holding_get AssetBalance
 bnz has_tasa
 byte "IsOwner"
-byte "False"
+int 0
 app_global_put
 int 1
 return
@@ -66,7 +64,7 @@ b end_tiquet_app
 
 has_tasa:
 byte "IsOwner"
-byte "True"
+int 1
 app_global_put
 int 1
 return
