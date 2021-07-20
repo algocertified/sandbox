@@ -16,6 +16,10 @@ txn OnCompletion
 int OptIn
 ==
 bnz optin
+// Otherwise, check txn is for updating application
+txn OnCompletion
+int UpdateApplication
+bnz update_app
 // Otherwise, check txn is making an application call. 
 txn OnCompletion
 int NoOp
@@ -47,6 +51,18 @@ b end_tiquet_app
 
 optin:
 int 1
+return
+b end_tiquet_app
+
+/////////////////////////
+// Update Application  //
+/////////////////////////
+
+update_app:
+// Only the application creator can update.
+global CreatorAddress
+txn Sender
+==
 return
 b end_tiquet_app
 
