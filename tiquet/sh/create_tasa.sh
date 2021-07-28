@@ -1,9 +1,16 @@
 #!/bin/bash
 
-issuer_address=$(goal account list | awk '{print $2}' | tr " " "\n" | head -1)
+if command -v ./sandbox &> /dev/null
+then
+  GOAL_COMMAND="./sandbox goal"
+else
+  GOAL_COMMAND="goal"
+fi
+
+issuer_address=$(${GOAL_COMMAND} account list | awk '{print $2}' | tr " " "\n" | head -1)
 echo "Issuer address: ${issuer_address}"
 
-goal asset create \
+${GOAL_COMMAND} asset create \
   --creator $issuer_address \
   --name "Some Tiquet" \
   --asseturl "tiquet.io/sometiquet" \
