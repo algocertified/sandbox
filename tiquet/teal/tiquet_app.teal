@@ -1,5 +1,4 @@
 #pragma version 4
-// #pragma version 4
 
 //////////////////////////
 // Application Creation //
@@ -16,10 +15,6 @@ txn OnCompletion
 int OptIn
 ==
 bnz optin
-// Otherwise, check txn is for updating application
-txn OnCompletion
-int UpdateApplication
-bnz update_app
 // Otherwise, check txn is making an application call. 
 txn OnCompletion
 int NoOp
@@ -39,7 +34,8 @@ tiquet_creation:
 // Set tiquet price to 99 microAlgos.
 // TODO: Represent price in USD.
 byte "Price"
-int 99
+// int 99
+int 1000000000000000
 app_global_put
 int 1
 return
@@ -72,16 +68,16 @@ b end_tiquet_app
 
 tiquet:
 // Issuer address.
-addr INOJEZ5FFMO7QQOEVCY52VYTW6B5R6DUJV245UCVOVVLTDNKG2NMLQK56A
+addr JY6OTG3ZHINX2YAYPNUX6WJX6V2TGCHDNZD347WDLN5FTLGJOEM2H4NFFM
 // TASA Id.
-int 1
+int 5
 asset_holding_get AssetBalance
 // Go to initial sale journey if the issuer own's the TASA.
 bnz initial_sale
 // 0th-index value into accounts array, i.e. caller's address. 
 int 0
 // TASA Id.
-int 1
+int 5
 asset_holding_get AssetBalance
 // Otherwise, go to resale journey if the caller own's the TASA.
 bnz resale
@@ -95,9 +91,29 @@ b end_tiquet_app
 ///////////////////
 
 initial_sale:
-int 1
-return
-b end_tiquet_app
+
+global GroupSize
+int 3
+==
+gtxn 0 TypeEnum
+int appl
+==
+&&
+gtxn 1 TypeEnum
+int axfer
+==
+&&
+gtxn 2 TypeEnum
+int pay
+==
+&&
+byte "Price"
+app_global_get
+gtxn 2 Amount
+<=
+&&
+bnz success
+b failure
 
 ////////////
 // Resale //
@@ -111,5 +127,15 @@ b end_tiquet_app
 /////////////////////
 // Application End //
 /////////////////////
+
+success:
+int 1
+return
+b end_tiquet_app
+
+failure:
+int 0
+return
+b end_tiquet_app
 
 end_tiquet_app:

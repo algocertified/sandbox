@@ -10,11 +10,11 @@ class NetworkAccounts:
 
     # Environment variable for path to file containing mnemonics for each test
     # account.
-    _MNEMONICS_FILE_ENVVAR="MNEMONICS_FILE"
+    _MNEMONICS_FILE_ENVVAR = "MNEMONICS_FILE"
 
     # Indices into accounts list.
-    _TIQUET_IDX = 0
-    _ISSUER_IDX = 1
+    _ISSUER_IDX = 0
+    _BUYER_IDX = 1
     _FRAUDSTER_IDX = 2
 
     def __init__(self):
@@ -45,20 +45,26 @@ class NetworkAccounts:
     # Differs by the network being tested against.
     def _get_mnemonics_fpath(self):
         if self._MNEMONICS_FILE_ENVVAR not in os.environ:
-            raise ValueError("Mnemonics filepath environment variable '{}' not set".format(
-            self._MNEMONICS_FILE_ENVVAR))
+            raise ValueError(
+                "Mnemonics filepath environment variable '{}' not set".format(
+                    self._MNEMONICS_FILE_ENVVAR
+                )
+            )
 
         return os.environ.get(self._MNEMONICS_FILE_ENVVAR)
 
-    def get_tiquet_account(self):
-        return self.accounts[self._TIQUET_IDX]
-
     def get_issuer_account(self):
         return self.accounts[self._ISSUER_IDX]
+
+    def get_buyer_account(self):
+        return self.accounts[self._BUYER_IDX]
 
     def get_fraudster_account(self):
         return self.accounts[self._FRAUDSTER_IDX]
 
     def get_accounts(self):
-        return (self.get_tiquet_account(), self.get_issuer_account(),
-            self.get_fraudster_account())
+        return (
+            self.get_issuer_account(),
+            self.get_buyer_account(),
+            self.get_fraudster_account(),
+        )
