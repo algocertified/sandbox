@@ -1,0 +1,141 @@
+#pragma version 4
+
+//////////////////////////
+// Application Creation //
+//////////////////////////
+
+// Check txn is for application creation.
+txn ApplicationID
+int 0
+==
+// If yes, create tiquet. 
+bnz tiquet_creation
+// Otherwise, check txn is for opting-in to application. 
+txn OnCompletion
+int OptIn
+==
+bnz optin
+// Otherwise, check txn is making an application call. 
+txn OnCompletion
+int NoOp
+==
+bnz tiquet
+// Otherwise, return false.
+// TODO: Handle other application ops.
+int 0
+return
+b end_tiquet_app
+
+/////////////////////
+// Tiquet Creation //
+/////////////////////
+
+tiquet_creation:
+// Set tiquet price to 99 microAlgos.
+// TODO: Represent price in USD.
+byte "Price"
+// int 99
+int 1000000000000000
+app_global_put
+int 1
+return
+b end_tiquet_app
+
+/////////////
+// Opt-In  //
+/////////////
+
+optin:
+int 1
+return
+b end_tiquet_app
+
+/////////////////////////
+// Update Application  //
+/////////////////////////
+
+update_app:
+// Only the application creator can update.
+global CreatorAddress
+txn Sender
+==
+return
+b end_tiquet_app
+
+//////////////////
+// Application  //
+//////////////////
+
+tiquet:
+// Issuer address.
+addr JY6OTG3ZHINX2YAYPNUX6WJX6V2TGCHDNZD347WDLN5FTLGJOEM2H4NFFM
+// TASA Id.
+int 5
+asset_holding_get AssetBalance
+// Go to initial sale journey if the issuer own's the TASA.
+bnz initial_sale
+// 0th-index value into accounts array, i.e. caller's address. 
+int 0
+// TASA Id.
+int 5
+asset_holding_get AssetBalance
+// Otherwise, go to resale journey if the caller own's the TASA.
+bnz resale
+// Fail otherwise.
+int 0
+return
+b end_tiquet_app
+
+///////////////////
+// Initial Sale  //
+///////////////////
+
+initial_sale:
+
+global GroupSize
+int 3
+==
+gtxn 0 TypeEnum
+int appl
+==
+&&
+gtxn 1 TypeEnum
+int axfer
+==
+&&
+gtxn 2 TypeEnum
+int pay
+==
+&&
+byte "Price"
+app_global_get
+gtxn 2 Amount
+<=
+&&
+bnz success
+b failure
+
+////////////
+// Resale //
+////////////
+
+resale:
+int 1
+return
+b end_tiquet_app
+
+/////////////////////
+// Application End //
+/////////////////////
+
+success:
+int 1
+return
+b end_tiquet_app
+
+failure:
+int 0
+return
+b end_tiquet_app
+
+end_tiquet_app:

@@ -1,8 +1,12 @@
+.DS_Store
 .active_config
 .clean
 sandbox.log
 data
+
+# Python
 **/__pycache__/**
+*.egg-info
 
 # Compiled TEAL program files
 *.tok
