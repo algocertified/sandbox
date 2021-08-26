@@ -4,7 +4,9 @@ from tiquet.common.algorand_helper import AlgorandHelper
 from algosdk.future.transaction import (
     ApplicationCreateTxn,
     AssetConfigTxn,
+    LogicSigAccount,
     OnComplete,
+    PaymentTxn,
     StateSchema,
 )
 
@@ -14,6 +16,8 @@ class TiquetIssuer:
     Represents a tiquet issuer.
     """
 
+    ESCROW_DEPOSIT_AMT=1000000
+
     def __init__(
         self,
         pk,
@@ -21,6 +25,7 @@ class TiquetIssuer:
         mnemonic,
         app_fpath,
         clear_fpath,
+        escrow_fpath,
         algodclient,
         algod_params,
         logger,
@@ -30,6 +35,7 @@ class TiquetIssuer:
         self.mnemonic = mnemonic
         self.app_fpath = app_fpath
         self.clear_fpath = clear_fpath
+        self.escrow_fpath = escrow_fpath
         self.algodclient = algodclient
         self.algod_params = algod_params
         self.logger = logger
@@ -38,7 +44,11 @@ class TiquetIssuer:
     def issue_tiquet(self):
         tiquet_id = self._create_tasa()
         app_id = self._deploy_tiquet_app(tiquet_id)
-        return (tiquet_id, app_id)
+        escrow_lsig = self._deploy_tiquet_escrow()
+        escrow_address = escrow_lsig.address()
+        self._set_tiquet_clawback(tiquet_id, escrow_address)
+        self._fund_escrow(escrow_address)
+        return (tiquet_id, app_id, escrow_lsig)
 
     def _create_tasa(self):
         txn = AssetConfigTxn(
@@ -98,6 +108,37 @@ class TiquetIssuer:
         # TODO(hv): Add logging statements
 
         return app_id
+
+    def _deploy_tiquet_escrow(self):
+        escrow_prog = self._get_prog(self.escrow_fpath)
+        return LogicSigAccount(escrow_prog)
+
+    def _set_tiquet_clawback(self, tiquet_id, escrow_address):
+        txn = AssetConfigTxn(
+            sender=self.pk,
+            sp=self.algod_params,
+            index=tiquet_id,
+            total=1,
+            manager=self.pk,
+            reserve=self.pk,
+            freeze=self.pk,
+            clawback=escrow_address)
+
+        stxn = txn.sign(self.sk)
+        txid = self.algorand_helper.send_and_wait_for_txn(stxn)
+        return self.algodclient.pending_transaction_info(txid)
+
+    def _fund_escrow(self, escrow_address):
+        txn = PaymentTxn(
+            sender=self.pk,
+            sp=self.algod_params,
+            receiver=escrow_address,
+            amt=self.ESCROW_DEPOSIT_AMT,
+        )
+
+        stxn = txn.sign(self.sk)
+        txid = self.algorand_helper.send_and_wait_for_txn(stxn)
+        return self.algodclient.pending_transaction_info(txid)
 
     def _get_prog(self, fpath):
         with open(fpath, "rt") as f:

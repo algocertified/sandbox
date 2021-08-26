@@ -70,14 +70,14 @@ tiquet:
 // Issuer address.
 addr JY6OTG3ZHINX2YAYPNUX6WJX6V2TGCHDNZD347WDLN5FTLGJOEM2H4NFFM
 // TASA Id.
-int 5
+int 1
 asset_holding_get AssetBalance
 // Go to initial sale journey if the issuer own's the TASA.
 bnz initial_sale
 // 0th-index value into accounts array, i.e. caller's address. 
 int 0
 // TASA Id.
-int 5
+int 1
 asset_holding_get AssetBalance
 // Otherwise, go to resale journey if the caller own's the TASA.
 bnz resale

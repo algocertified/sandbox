@@ -1,0 +1,13 @@
+#pragma version 4
+
+global GroupSize
+int 3
+==
+gtxn 0 TypeEnum
+int appl
+==
+&&
+gtxn 0 ApplicationID
+int 2
+==
+&&
