@@ -34,8 +34,7 @@ tiquet_creation:
 // Set tiquet price to 99 microAlgos.
 // TODO: Represent price in USD.
 byte "Price"
-// int 99
-int 1000000000000000
+int {{TIQUET_PRICE}}
 app_global_put
 int 1
 return
@@ -67,17 +66,14 @@ b end_tiquet_app
 //////////////////
 
 tiquet:
-// Issuer address.
-addr JY6OTG3ZHINX2YAYPNUX6WJX6V2TGCHDNZD347WDLN5FTLGJOEM2H4NFFM
-// TASA Id.
-int 1
+addr {{ISSUER_ADDRESS}}
+int {{TIQUET_ID}}
 asset_holding_get AssetBalance
 // Go to initial sale journey if the issuer own's the TASA.
 bnz initial_sale
 // 0th-index value into accounts array, i.e. caller's address. 
 int 0
-// TASA Id.
-int 1
+int {{TIQUET_ID}}
 asset_holding_get AssetBalance
 // Otherwise, go to resale journey if the caller own's the TASA.
 bnz resale
@@ -115,7 +111,7 @@ int pay
 byte "Price"
 app_global_get
 gtxn 2 Amount
-<=
+==
 &&
 bnz success
 b failure

@@ -41,10 +41,10 @@ class TiquetIssuer:
         self.logger = logger
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
-    def issue_tiquet(self):
+    def issue_tiquet(self, tiquet_price):
         tiquet_id = self._create_tasa()
-        app_id = self._deploy_tiquet_app(tiquet_id)
-        escrow_lsig = self._deploy_tiquet_escrow()
+        app_id = self._deploy_tiquet_app(tiquet_id, tiquet_price)
+        escrow_lsig = self._deploy_tiquet_escrow(app_id, tiquet_id)
         escrow_address = escrow_lsig.address()
         self._set_tiquet_clawback(tiquet_id, escrow_address)
         self._fund_escrow(escrow_address)
@@ -76,8 +76,13 @@ class TiquetIssuer:
 
         return tasa_id
 
-    def _deploy_tiquet_app(self, tasa_id):
-        app_prog = self._get_prog(self.app_fpath)
+    def _deploy_tiquet_app(self, tasa_id, tiquet_price):
+        var_assigns = {
+            "TIQUET_PRICE": tiquet_price,
+            "TIQUET_ID": tasa_id,
+            "ISSUER_ADDRESS": self.pk,
+        }
+        app_prog = self._get_prog(self.app_fpath, var_assigns=var_assigns)
         clear_prog = self._get_prog(self.clear_fpath)
 
         self.logger.debug("app_prog: " + str(app_prog))
@@ -109,8 +114,13 @@ class TiquetIssuer:
 
         return app_id
 
-    def _deploy_tiquet_escrow(self):
-        escrow_prog = self._get_prog(self.escrow_fpath)
+    def _deploy_tiquet_escrow(self, app_id, tasa_id):
+        var_assigns = {
+            "TIQUET_APP_ID": app_id,
+            "TIQUET_ID": tasa_id,
+            "ISSUER_ADDRESS": self.pk,
+        }
+        escrow_prog = self._get_prog(self.escrow_fpath, var_assigns=var_assigns)
         return LogicSigAccount(escrow_prog)
 
     def _set_tiquet_clawback(self, tiquet_id, escrow_address):
@@ -140,7 +150,9 @@ class TiquetIssuer:
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
         return self.algodclient.pending_transaction_info(txid)
 
-    def _get_prog(self, fpath):
+    def _get_prog(self, fpath, var_assigns={}):
         with open(fpath, "rt") as f:
             source = f.read()
+            for var, value in var_assigns.items():
+                source = source.replace("{{%s}}" % var, str(value))
             return base64.b64decode(self.algodclient.compile(source)["result"])

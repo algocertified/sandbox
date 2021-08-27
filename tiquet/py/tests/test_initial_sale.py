@@ -29,7 +29,8 @@ def test_initial_sale_success(
         logger=logger,
     )
 
-    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet()
+    tiquet_price = 1000000000000000
+    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_price)
 
     logger.debug("Tiquet Id: {}".format(tiquet_id))
     logger.debug("App Id: {}".format(app_id))
@@ -53,5 +54,5 @@ def test_initial_sale_success(
         app_id=app_id,
         issuer_account=issuer_account["pk"],
         seller_account=issuer_account["pk"],
-        amount=1000000000000000,
+        amount=tiquet_price,
     )
