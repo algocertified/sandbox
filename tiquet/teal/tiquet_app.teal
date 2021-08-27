@@ -103,6 +103,11 @@ gtxn 1 TypeEnum
 int axfer
 ==
 &&
+// TODO(hv): Check sender is escrow
+// gtxn 1 Sender
+// byte "EscrowAddress"
+// app_global_get
+// ==
 gtxn 2 TypeEnum
 int pay
 ==
