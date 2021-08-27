@@ -3,6 +3,7 @@ import base64
 from tiquet.common.algorand_helper import AlgorandHelper
 from algosdk.future.transaction import (
     ApplicationCreateTxn,
+    ApplicationNoOpTxn,
     AssetConfigTxn,
     LogicSigAccount,
     OnComplete,
@@ -48,6 +49,7 @@ class TiquetIssuer:
         escrow_address = escrow_lsig.address()
         self._set_tiquet_clawback(tiquet_id, escrow_address)
         self._fund_escrow(escrow_address)
+        self._store_escrow_address(app_id, tiquet_id, escrow_address)
         return (tiquet_id, app_id, escrow_lsig)
 
     def _create_tasa(self):
@@ -90,7 +92,7 @@ class TiquetIssuer:
         local_ints = 0
         local_bytes = 0
         global_ints = 1
-        global_bytes = 0
+        global_bytes = 1
         global_schema = StateSchema(global_ints, global_bytes)
         local_schema = StateSchema(local_ints, local_bytes)
 
@@ -146,6 +148,19 @@ class TiquetIssuer:
             amt=self.ESCROW_DEPOSIT_AMT,
         )
 
+        stxn = txn.sign(self.sk)
+        txid = self.algorand_helper.send_and_wait_for_txn(stxn)
+        return self.algodclient.pending_transaction_info(txid)
+
+    def _store_escrow_address(self, app_id, tiquet_id, escrow_address):
+        txn = ApplicationNoOpTxn(
+            sender=self.pk,
+            sp=self.algod_params,
+            index=app_id,
+            accounts=[self.pk],
+            foreign_assets=[tiquet_id],
+            app_args=[escrow_address],
+        )
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
         return self.algodclient.pending_transaction_info(txid)

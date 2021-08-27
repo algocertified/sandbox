@@ -33,7 +33,7 @@ b end_tiquet_app
 tiquet_creation:
 // Set tiquet price to 99 microAlgos.
 // TODO: Represent price in USD.
-byte "Price"
+byte "PRICE"
 int {{TIQUET_PRICE}}
 app_global_put
 int 1
@@ -66,6 +66,10 @@ b end_tiquet_app
 //////////////////
 
 tiquet:
+txn NumAppArgs
+int 1
+==
+bnz store_escrow_address
 addr {{ISSUER_ADDRESS}}
 int {{TIQUET_ID}}
 asset_holding_get AssetBalance
@@ -79,6 +83,14 @@ asset_holding_get AssetBalance
 bnz resale
 // Fail otherwise.
 int 0
+return
+b end_tiquet_app
+
+store_escrow_address:
+byte "ESCROW_ADDRESS"
+txna ApplicationArgs 0
+app_global_put
+int 1
 return
 b end_tiquet_app
 
@@ -99,16 +111,17 @@ gtxn 1 TypeEnum
 int axfer
 ==
 &&
-// TODO(hv): Check sender is escrow
-// gtxn 1 Sender
-// byte "EscrowAddress"
+// TODO: Check escrow is sender of tiquet transfer txn
+// byte "ESCROW_ADDRESS"
 // app_global_get
+// gtxn 1 Sender
 // ==
+// &&
 gtxn 2 TypeEnum
 int pay
 ==
 &&
-byte "Price"
+byte "PRICE"
 app_global_get
 gtxn 2 Amount
 ==
