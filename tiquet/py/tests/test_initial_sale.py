@@ -10,7 +10,14 @@ from tiquet.tiquet_issuer import TiquetIssuer
 
 
 def test_initial_sale_success(
-    accounts, algodclient, algod_params, algorand_helper, logger
+    accounts,
+    algodclient,
+    algod_params,
+    algorand_helper,
+    logger,
+    app_fpath,
+    clear_fpath,
+    escrow_fpath,
 ):
     # Get issuer algorand account, with public and secret keys.
     issuer_account = accounts.get_issuer_account()
@@ -20,10 +27,9 @@ def test_initial_sale_success(
         pk=issuer_account["pk"],
         sk=issuer_account["sk"],
         mnemonic=issuer_account["mnemonic"],
-        # TODO(hv): Move TEAL source paths to config
-        app_fpath="/root/tiquet/teal/tiquet_app.teal",
-        clear_fpath="/root/tiquet/teal/clear.teal",
-        escrow_fpath="/root/tiquet/teal/tiquet_law.teal",
+        app_fpath=app_fpath,
+        clear_fpath=clear_fpath,
+        escrow_fpath=escrow_fpath,
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,

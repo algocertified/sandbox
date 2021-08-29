@@ -63,6 +63,9 @@ services:
     environment:
       ALGOD_ADDR: "http://localhost:4001"
       ALGOD_TOKEN: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      APP_FPATH: "/root/tiquet/teal/tiquet_app.teal"
+      CLEAR_FPATH: "/root/tiquet/teal/clear.teal"
+      ESCROW_FPATH: "/root/tiquet/teal/escrow.teal"
       MNEMONICS_FILE: "/tmp/config/mnemonics_privnet.txt"
       NETWORK: "privnet"
     volumes:
@@ -80,6 +83,9 @@ services:
     environment:
       ALGOD_ADDR: "https://testnet-algorand.api.purestake.io/ps2"
       ALGOD_TOKEN: "LGlsGlaSiY37Y3xKQly071AsDwS6PeP73mAaFJLF"
+      APP_FPATH: "/root/tiquet/teal/tiquet_app.teal"
+      CLEAR_FPATH: "/root/tiquet/teal/clear.teal"
+      ESCROW_FPATH: "/root/tiquet/teal/escrow.teal"
       MNEMONICS_FILE: "/tmp/config/mnemonics_testnet.txt"
       NETWORK: "testnet"
     volumes:
