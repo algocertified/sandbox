@@ -7,7 +7,14 @@ from tiquet.tiquet_issuer import TiquetIssuer
 
 
 def test_issue_tiquet_success(
-    accounts, algodclient, algod_params, algorand_helper, logger
+    accounts,
+    algodclient,
+    algod_params,
+    algorand_helper,
+    logger,
+    app_fpath,
+    clear_fpath,
+    escrow_fpath,
 ):
     # Get issuer algorand account, with public and secret keys.
     issuer_account = accounts.get_issuer_account()
@@ -17,15 +24,16 @@ def test_issue_tiquet_success(
         pk=issuer_account["pk"],
         sk=issuer_account["sk"],
         mnemonic=issuer_account["mnemonic"],
-        # TODO
-        app_fpath="/root/tiquet/teal/tiquet_app.teal",
-        clear_fpath="/root/tiquet/teal/clear.teal",
+        app_fpath=app_fpath,
+        clear_fpath=clear_fpath,
+        escrow_fpath=escrow_fpath,
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
     )
 
-    tiquet_id, app_id = issuer.issue_tiquet()
+    tiquet_price = 1000000000000000
+    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_price)
 
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
     assert algorand_helper.created_app(issuer_account["pk"], app_id)
@@ -47,16 +55,17 @@ def test_spoof_issue_tiquet_fail(
         pk=issuer_account["pk"],
         sk=fraudster_account["sk"],
         mnemonic=fraudster_account["mnemonic"],
-        # TODO
-        app_fpath="/root/tiquet/teal/tiquet_app.teal",
-        clear_fpath="/root/tiquet/teal/clear.teal",
+        app_fpath=app_fpath,
+        clear_fpath=clear_fpath,
+        escrow_fpath=escrow_fpath,
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
     )
 
+    tiquet_price = 1000000000000000
     # TASA creation transaction will be rejected by the network.
     with pytest.raises(AlgodHTTPError) as e:
-        issuer.issue_tiquet()
+        issuer.issue_tiquet(tiquet_price)
         # TODO(hv): Is this the right message we should be checking for?
         assert "transaction already in ledger" in e.message
