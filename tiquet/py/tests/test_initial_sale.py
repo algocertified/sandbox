@@ -46,8 +46,11 @@ def test_initial_sale_success(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
-        escrow_lsig=escrow_lsig
+        escrow_lsig=escrow_lsig,
     )
+
+    issuer_info_before = algodclient.account_info(issuer_account["pk"])
+    buyer_info_before = algodclient.account_info(buyer_account["pk"])
 
     buyer.buy_tiquet(
         tiquet_id=tiquet_id,
@@ -55,4 +58,27 @@ def test_initial_sale_success(
         issuer_account=issuer_account["pk"],
         seller_account=issuer_account["pk"],
         amount=tiquet_price,
+    )
+
+    issuer_info_after = algodclient.account_info(issuer_account["pk"])
+    buyer_info_after = algodclient.account_info(buyer_account["pk"])
+
+    # Check tiquet is in possession of buyer.
+    assert all(
+        asset["amount"] == 0
+        for asset in issuer_info_after["assets"]
+        if asset["asset-id"] == tiquet_id
+    )
+    # Check tiquet is no longer in possession of issuer.
+    assert all(
+        asset["amount"] == 1
+        for asset in buyer_info_after["assets"]
+        if asset["asset-id"] == tiquet_id
+    )
+    # Check issuer account is credited tiquet amount.
+    assert issuer_info_after["amount"] - issuer_info_before["amount"] == tiquet_price
+    # Check buyer account is debited tiquet price and fees for 3 txns.
+    assert (
+        buyer_info_after["amount"] - buyer_info_before["amount"]
+        == -1 * tiquet_price - 3 * algod_params.fee
     )
