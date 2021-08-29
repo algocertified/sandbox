@@ -68,7 +68,7 @@ class TiquetClient:
         self.algorand_helper.wait_for_confirmation(txid)
 
         return self.algodclient.pending_transaction_info(txid)
-        
+
     def _tiquet_opt_in(self, tiquet_id):
         txn = transaction.AssetOptInTxn(
             sender=self.pk,
