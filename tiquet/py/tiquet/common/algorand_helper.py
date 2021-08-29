@@ -41,6 +41,10 @@ class AlgorandHelper:
         account_info = self.client.account_info(account)
         return all(asset["amount"] == amount for asset in account_info["assets"] if asset["asset-id"] == assetid)
 
+    def get_amount(self, account):
+        account_info = self.client.account_info(account)
+        return account_info["amount"]
+
     # Utility function used to print created asset for account and assetid
     def log_created_asset(self, account, assetid):
         # note: if you have an indexer instance available it is easier to just use this
