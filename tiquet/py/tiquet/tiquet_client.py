@@ -27,7 +27,7 @@ class TiquetClient:
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
     def buy_tiquet(self, tiquet_id, app_id, issuer_account, seller_account, amount):
-        self._tiquet_opt_in(tiquet_id)
+        self.tiquet_opt_in(tiquet_id)
 
         txn1 = transaction.ApplicationNoOpTxn(
             sender=self.pk,
@@ -69,7 +69,7 @@ class TiquetClient:
 
         return self.algodclient.pending_transaction_info(txid)
 
-    def _tiquet_opt_in(self, tiquet_id):
+    def tiquet_opt_in(self, tiquet_id):
         txn = transaction.AssetOptInTxn(
             sender=self.pk,
             sp=self.algod_params,
