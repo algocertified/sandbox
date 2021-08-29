@@ -69,18 +69,10 @@ def test_initial_sale_success(
     issuer_info_after = algodclient.account_info(issuer_account["pk"])
     buyer_info_after = algodclient.account_info(buyer_account["pk"])
 
-    # Check tiquet is in possession of buyer.
-    assert all(
-        asset["amount"] == 0
-        for asset in issuer_info_after["assets"]
-        if asset["asset-id"] == tiquet_id
-    )
+    # Check tiquet is in possession of buyer.    
+    assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id)
     # Check tiquet is no longer in possession of issuer.
-    assert all(
-        asset["amount"] == 1
-        for asset in buyer_info_after["assets"]
-        if asset["asset-id"] == tiquet_id
-    )
+    assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id, amount=0)
     # Check issuer account is credited tiquet amount.
     assert issuer_info_after["amount"] - issuer_info_before["amount"] == tiquet_price
     # Check buyer account is debited tiquet price and fees for 3 txns.
