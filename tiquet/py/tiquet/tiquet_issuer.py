@@ -17,7 +17,7 @@ class TiquetIssuer:
     Represents a tiquet issuer.
     """
 
-    ESCROW_DEPOSIT_AMT=1000000
+    ESCROW_DEPOSIT_AMT = 1000000
 
     def __init__(
         self,
@@ -134,7 +134,8 @@ class TiquetIssuer:
             manager=self.pk,
             reserve=self.pk,
             freeze=self.pk,
-            clawback=escrow_address)
+            clawback=escrow_address,
+        )
 
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
