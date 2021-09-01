@@ -10,6 +10,8 @@ from tiquet.tiquet_client import TiquetClient
 from tiquet.tiquet_issuer import TiquetIssuer
 
 
+# Test is flaky, sometimes failing because the issuer's account is credited more
+# than the tiquet price.
 def test_initial_sale_success(
     accounts,
     algodclient,
