@@ -1,5 +1,6 @@
 import base64
 
+from tiquet.common import constants
 from tiquet.common.algorand_helper import AlgorandHelper
 from algosdk.future.transaction import (
     ApplicationCreateTxn,
@@ -17,7 +18,7 @@ class TiquetIssuer:
     Represents a tiquet issuer.
     """
 
-    ESCROW_DEPOSIT_AMT = 1000000
+    _ESCROW_DEPOSIT_AMT = 1000000
 
     def __init__(
         self,
@@ -30,6 +31,7 @@ class TiquetIssuer:
         algodclient,
         algod_params,
         logger,
+        tiquet_io_account,
     ):
         self.pk = pk
         self.sk = sk
@@ -40,6 +42,7 @@ class TiquetIssuer:
         self.algodclient = algodclient
         self.algod_params = algod_params
         self.logger = logger
+        self.tiquet_io_account = tiquet_io_account
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
     def issue_tiquet(self, name, price):
@@ -119,6 +122,8 @@ class TiquetIssuer:
         var_assigns = {
             "TIQUET_APP_ID": app_id,
             "TIQUET_ID": tasa_id,
+            "TIQUET_IO_PROCESSING_FEE": constants.TIQUET_IO_PROCESSING_FEE,
+            "TIQUET_IO_ADDRESS": self.tiquet_io_account,
             "ISSUER_ADDRESS": self.pk,
         }
         escrow_prog = self._get_prog(self.escrow_fpath, var_assigns=var_assigns)
@@ -145,7 +150,7 @@ class TiquetIssuer:
             sender=self.pk,
             sp=self.algod_params,
             receiver=escrow_address,
-            amt=self.ESCROW_DEPOSIT_AMT,
+            amt=self._ESCROW_DEPOSIT_AMT,
         )
 
         stxn = txn.sign(self.sk)

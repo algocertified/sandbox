@@ -1,0 +1,2 @@
+# TODO(hv): Make final
+TIQUET_IO_PROCESSING_FEE = 10000

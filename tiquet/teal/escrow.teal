@@ -1,7 +1,7 @@
 #pragma version 4
 
 global GroupSize
-int 3
+int 4
 ==
 gtxn 0 TypeEnum
 int appl
@@ -49,5 +49,21 @@ gtxn 0 Sender
 &&
 gtxn 2 Receiver
 addr {{ISSUER_ADDRESS}}
+==
+&&
+gtxn 3 TypeEnum
+int pay
+==
+&&
+gtxn 3 Sender
+gtxn 0 Sender
+==
+&&
+gtxn 3 Receiver
+addr {{TIQUET_IO_ADDRESS}}
+==
+&&
+gtxn 3 Amount
+int {{TIQUET_IO_PROCESSING_FEE}}
 ==
 &&

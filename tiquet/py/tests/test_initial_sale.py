@@ -5,6 +5,7 @@ import uuid
 from algosdk.error import AlgodHTTPError
 from algosdk.future import transaction
 from fixtures import *
+from tiquet.common import constants
 from tiquet.common.algorand_helper import AlgorandHelper
 from tiquet.tiquet_client import TiquetClient
 from tiquet.tiquet_issuer import TiquetIssuer
@@ -22,6 +23,10 @@ def test_initial_sale_success(
     clear_fpath,
     escrow_fpath,
 ):
+    # Get the tiquet.io account.
+    tiquet_io_account = accounts.get_tiquet_io_account()
+    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
+
     # Get issuer algorand account, with public and secret keys.
     issuer_account = accounts.get_issuer_account()
     logger.debug("Issuer address: {}".format(issuer_account["pk"]))
@@ -36,6 +41,7 @@ def test_initial_sale_success(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     tiquet_name = uuid.uuid4()
@@ -57,6 +63,7 @@ def test_initial_sale_success(
         algod_params=algod_params,
         logger=logger,
         escrow_lsig=escrow_lsig,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
@@ -82,7 +89,7 @@ def test_initial_sale_success(
     # Check buyer account is debited tiquet price and fees for 3 txns.
     assert (
         buyer_balance_after - buyer_balance_before
-        == -1 * tiquet_price - 3 * algod_params.fee
+        == -1 * tiquet_price - constants.TIQUET_IO_PROCESSING_FEE - 4 * algod_params.fee
     )
 
 def test_initial_sale_no_payment(
@@ -95,6 +102,10 @@ def test_initial_sale_no_payment(
     clear_fpath,
     escrow_fpath,
 ):
+    # Get the tiquet.io account.
+    tiquet_io_account = accounts.get_tiquet_io_account()
+    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
+
     # Get issuer algorand account, with public and secret keys.
     issuer_account = accounts.get_issuer_account()
     logger.debug("Issuer address: {}".format(issuer_account["pk"]))
@@ -109,6 +120,7 @@ def test_initial_sale_no_payment(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     tiquet_name = uuid.uuid4()
@@ -130,6 +142,7 @@ def test_initial_sale_no_payment(
         algod_params=algod_params,
         logger=logger,
         escrow_lsig=escrow_lsig,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     buyer.tiquet_opt_in(tiquet_id)
@@ -193,6 +206,10 @@ def test_initial_sale_insufficient_payment_amount(
     clear_fpath,
     escrow_fpath,
 ):
+    # Get the tiquet.io account.
+    tiquet_io_account = accounts.get_tiquet_io_account()
+    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
+
     # Get issuer algorand account, with public and secret keys.
     issuer_account = accounts.get_issuer_account()
     logger.debug("Issuer address: {}".format(issuer_account["pk"]))
@@ -207,6 +224,7 @@ def test_initial_sale_insufficient_payment_amount(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     tiquet_name = uuid.uuid4()
@@ -228,6 +246,7 @@ def test_initial_sale_insufficient_payment_amount(
         algod_params=algod_params,
         logger=logger,
         escrow_lsig=escrow_lsig,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
@@ -268,6 +287,10 @@ def test_initial_sale_payment_to_non_issuer(
     clear_fpath,
     escrow_fpath,
 ):
+    # Get the tiquet.io account.
+    tiquet_io_account = accounts.get_tiquet_io_account()
+    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
+
     # Get issuer algorand account, with public and secret keys.
     issuer_account = accounts.get_issuer_account()
     logger.debug("Issuer address: {}".format(issuer_account["pk"]))
@@ -282,6 +305,7 @@ def test_initial_sale_payment_to_non_issuer(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     tiquet_name = uuid.uuid4()
@@ -305,6 +329,7 @@ def test_initial_sale_payment_to_non_issuer(
         algod_params=algod_params,
         logger=logger,
         escrow_lsig=escrow_lsig,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     buyer.tiquet_opt_in(tiquet_id)

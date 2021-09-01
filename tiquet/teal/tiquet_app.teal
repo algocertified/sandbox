@@ -101,7 +101,7 @@ b end_tiquet_app
 initial_sale:
 
 global GroupSize
-int 3
+int 4
 ==
 gtxn 0 TypeEnum
 int appl
@@ -124,6 +124,10 @@ int pay
 byte "PRICE"
 app_global_get
 gtxn 2 Amount
+==
+&&
+gtxn 3 TypeEnum
+int pay
 ==
 &&
 bnz success

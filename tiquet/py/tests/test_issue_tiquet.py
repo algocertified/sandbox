@@ -17,6 +17,10 @@ def test_issue_tiquet_success(
     clear_fpath,
     escrow_fpath,
 ):
+    # Get the tiquet.io account.
+    tiquet_io_account = accounts.get_tiquet_io_account()
+    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
+
     # Get issuer algorand account, with public and secret keys.
     issuer_account = accounts.get_issuer_account()
     logger.debug("Issuer address: {}".format(issuer_account["pk"]))
@@ -31,6 +35,7 @@ def test_issue_tiquet_success(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     tiquet_name = uuid.uuid4()
@@ -44,6 +49,10 @@ def test_issue_tiquet_success(
 def test_spoof_issue_tiquet_fail(
     accounts, algodclient, algod_params, algorand_helper, logger
 ):
+    # Get the tiquet.io account.
+    tiquet_io_account = accounts.get_tiquet_io_account()
+    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
+
     # Get issuer's public key (Secret key is not available to anyone else,
     # inlcuding the fraudster).
     issuer_account = accounts.get_issuer_account()
@@ -63,6 +72,7 @@ def test_spoof_issue_tiquet_fail(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
+        tiquet_io_account=tiquet_io_account["pk"],
     )
 
     tiquet_name = uuid.uuid4()
