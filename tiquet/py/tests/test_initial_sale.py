@@ -11,8 +11,9 @@ from tiquet.tiquet_client import TiquetClient
 from tiquet.tiquet_issuer import TiquetIssuer
 
 
-# Test is flaky, sometimes failing because the issuer's account is credited more
-# than the tiquet price.
+# Tests are flaky, sometimes failing because account funds change by unexpected
+# amounts.
+
 def test_initial_sale_success(
     accounts,
     algodclient,
@@ -66,6 +67,7 @@ def test_initial_sale_success(
         tiquet_io_account=tiquet_io_account["pk"],
     )
 
+    tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
 
@@ -77,6 +79,7 @@ def test_initial_sale_success(
         amount=tiquet_price,
     )
 
+    tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
 
@@ -84,6 +87,8 @@ def test_initial_sale_success(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id)
     # Check tiquet is no longer in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id, amount=0)
+    # Check tiquet.io account is credited processing fee.
+    assert tiquet_io_balance_after - tiquet_io_balance_before == constants.TIQUET_IO_PROCESSING_FEE
     # Check issuer account is credited tiquet amount.
     assert issuer_balance_after - issuer_balance_before == tiquet_price
     # Check buyer account is debited tiquet price and fees for 3 txns.
@@ -92,7 +97,7 @@ def test_initial_sale_success(
         == -1 * tiquet_price - constants.TIQUET_IO_PROCESSING_FEE - 4 * algod_params.fee
     )
 
-def test_initial_sale_no_payment(
+def test_initial_sale_no_tiquet_payment(
     accounts,
     algodclient,
     algod_params,
@@ -147,10 +152,12 @@ def test_initial_sale_no_payment(
 
     buyer.tiquet_opt_in(tiquet_id)
 
+    tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
 
     with pytest.raises(AlgodHTTPError) as e:
+        # Application call to execute sale.
         txn1 = transaction.ApplicationNoOpTxn(
             sender=buyer_account["pk"],
             sp=algod_params,
@@ -159,6 +166,7 @@ def test_initial_sale_no_payment(
             foreign_assets=[tiquet_id],
         )
 
+        # Tiquet transfer to buyer.
         txn2 = transaction.AssetTransferTxn(
             sender=escrow_lsig.address(),
             sp=algod_params,
@@ -168,19 +176,30 @@ def test_initial_sale_no_payment(
             revocation_target=issuer_account["pk"],
         )
 
-        gid = transaction.calculate_group_id([txn1, txn2])
+        # Processing fee to tiquet.io.
+        txn3 = transaction.PaymentTxn(
+            sender=buyer_account["pk"],
+            sp=algod_params,
+            receiver=tiquet_io_account["pk"],
+            amt=constants.TIQUET_IO_PROCESSING_FEE,
+        )
+
+        gid = transaction.calculate_group_id([txn1, txn2, txn3])
         txn1.group = gid
         txn2.group = gid
+        txn3.group = gid
 
         stxn1 = txn1.sign(buyer_account["sk"])
         stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
         assert stxn2.verify()
+        stxn3 = txn3.sign(buyer_account["sk"])
 
-        txid = algodclient.send_transactions([stxn1, stxn2])
+        txid = algodclient.send_transactions([stxn1, stxn2, stxn3])
         algorand_helper.wait_for_confirmation(txid)
 
         assert "transaction rejected by ApprovalProgram" in e.message
 
+    tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
 
@@ -188,6 +207,8 @@ def test_initial_sale_no_payment(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet.io account balance is unchanged.
+    assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
     # Check buyer account balance is unchanged.
@@ -249,6 +270,7 @@ def test_initial_sale_insufficient_payment_amount(
         tiquet_io_account=tiquet_io_account["pk"],
     )
 
+    tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
 
@@ -262,6 +284,7 @@ def test_initial_sale_insufficient_payment_amount(
         )
         assert "transaction rejected by ApprovalProgram" in e.message
 
+    tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
 
@@ -269,6 +292,8 @@ def test_initial_sale_insufficient_payment_amount(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet.io account balance is unchanged.
+    assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
     # Check buyer account is debited only fee for 1 asset opt-in txn.
@@ -334,11 +359,13 @@ def test_initial_sale_payment_to_non_issuer(
 
     buyer.tiquet_opt_in(tiquet_id)
 
+    tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
     fraudster_balance_before = algorand_helper.get_amount(fraudster_account["pk"])
 
     with pytest.raises(AlgodHTTPError) as e:
+        # Application call to execute sale.
         txn1 = transaction.ApplicationNoOpTxn(
             sender=buyer_account["pk"],
             sp=algod_params,
@@ -347,6 +374,7 @@ def test_initial_sale_payment_to_non_issuer(
             foreign_assets=[tiquet_id],
         )
 
+        # Tiquet transfer to buyer.
         txn2 = transaction.AssetTransferTxn(
             sender=escrow_lsig.address(),
             sp=algod_params,
@@ -356,6 +384,7 @@ def test_initial_sale_payment_to_non_issuer(
             revocation_target=issuer_account["pk"],
         )
 
+        # Tiquet payment to seller. 
         txn3 = transaction.PaymentTxn(
             sender=buyer_account["pk"],
             sp=algod_params,
@@ -363,7 +392,137 @@ def test_initial_sale_payment_to_non_issuer(
             amt=tiquet_price,
         )
 
-        gid = transaction.calculate_group_id([txn1, txn2])
+        # Processing fee to tiquet.io.
+        txn4 = transaction.PaymentTxn(
+            sender=buyer_account["pk"],
+            sp=algod_params,
+            receiver=tiquet_io_account["pk"],
+            amt=constants.TIQUET_IO_PROCESSING_FEE,
+        )
+
+        gid = transaction.calculate_group_id([txn1, txn2, txn3, txn4])
+        txn1.group = gid
+        txn2.group = gid
+        txn3.group = gid
+        txn4.group = gid
+
+        stxn1 = txn1.sign(buyer_account["sk"])
+        stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
+        assert stxn2.verify()
+        stxn3 = txn3.sign(buyer_account["sk"])
+        stxn4 = txn4.sign(buyer_account["sk"])
+
+        txid = algodclient.send_transactions([stxn1, stxn2, stxn3, stxn4])
+        algorand_helper.wait_for_confirmation(txid)
+
+        assert "transaction rejected by ApprovalProgram" in e.message
+
+    tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
+    issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
+    buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
+    fraudster_balance_after = algorand_helper.get_amount(fraudster_account["pk"])
+
+    # Check tiquet is not in possession of buyer.    
+    assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
+    # Check tiquet is still in possession of issuer.
+    assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet.io account balance is unchanged.
+    assert tiquet_io_balance_after == tiquet_io_balance_before
+    # Check issuer account balance is unchanged.
+    assert issuer_balance_after == issuer_balance_before
+    # Check buyer account balance is unchanged.
+    assert buyer_balance_after == buyer_balance_before
+    # Check fraudster account balance is unchanged.
+    assert fraudster_balance_after == fraudster_balance_before
+
+def test_initial_sale_no_processing_fee(
+    accounts,
+    algodclient,
+    algod_params,
+    algorand_helper,
+    logger,
+    app_fpath,
+    clear_fpath,
+    escrow_fpath,
+):
+    # Get the tiquet.io account.
+    tiquet_io_account = accounts.get_tiquet_io_account()
+    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
+
+    # Get issuer algorand account, with public and secret keys.
+    issuer_account = accounts.get_issuer_account()
+    logger.debug("Issuer address: {}".format(issuer_account["pk"]))
+
+    issuer = TiquetIssuer(
+        pk=issuer_account["pk"],
+        sk=issuer_account["sk"],
+        mnemonic=issuer_account["mnemonic"],
+        app_fpath=app_fpath,
+        clear_fpath=clear_fpath,
+        escrow_fpath=escrow_fpath,
+        algodclient=algodclient,
+        algod_params=algod_params,
+        logger=logger,
+        tiquet_io_account=tiquet_io_account["pk"],
+    )
+
+    tiquet_name = uuid.uuid4()
+    tiquet_price = 100000000000
+    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_name, tiquet_price)
+
+    logger.debug("Tiquet Id: {}".format(tiquet_id))
+    logger.debug("App Id: {}".format(app_id))
+    logger.debug("Escrow address: {}".format(escrow_lsig.address()))
+
+    buyer_account = accounts.get_buyer_account()
+    logger.debug("Buyer address: {}".format(buyer_account["pk"]))
+
+    buyer = TiquetClient(
+        pk=buyer_account["pk"],
+        sk=buyer_account["sk"],
+        mnemonic=buyer_account["mnemonic"],
+        algodclient=algodclient,
+        algod_params=algod_params,
+        logger=logger,
+        escrow_lsig=escrow_lsig,
+        tiquet_io_account=tiquet_io_account["pk"],
+    )
+
+    buyer.tiquet_opt_in(tiquet_id)
+
+    tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
+    issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
+    buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
+
+    with pytest.raises(AlgodHTTPError) as e:
+        # Application call to execute sale.
+        txn1 = transaction.ApplicationNoOpTxn(
+            sender=buyer_account["pk"],
+            sp=algod_params,
+            index=app_id,
+            accounts=[issuer_account["pk"]],
+            foreign_assets=[tiquet_id],
+        )
+
+        # Tiquet transfer to buyer.
+        txn2 = transaction.AssetTransferTxn(
+            sender=escrow_lsig.address(),
+            sp=algod_params,
+            receiver=buyer_account["pk"],
+            amt=1,
+            index=tiquet_id,
+            revocation_target=issuer_account["pk"],
+        )
+
+        # Tiquet payment to seller. 
+        txn3 = transaction.PaymentTxn(
+            sender=buyer_account["pk"],
+            sp=algod_params,
+            receiver=issuer_account["pk"],
+            amt=tiquet_price,
+        )
+
+        gid = transaction.calculate_group_id([txn1, txn2, txn3])
         txn1.group = gid
         txn2.group = gid
         txn3.group = gid
@@ -373,22 +532,26 @@ def test_initial_sale_payment_to_non_issuer(
         assert stxn2.verify()
         stxn3 = txn3.sign(buyer_account["sk"])
 
-        txid = algodclient.send_transactions([stxn1, stxn2])
+        txid = algodclient.send_transactions([stxn1, stxn2, stxn3])
         algorand_helper.wait_for_confirmation(txid)
 
         assert "transaction rejected by ApprovalProgram" in e.message
 
+    tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
-    fraudster_balance_after = algorand_helper.get_amount(fraudster_account["pk"])
 
     # Check tiquet is not in possession of buyer.    
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet.io account balance is unchanged.
+    assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
     # Check buyer account balance is unchanged.
-    assert buyer_balance_after == buyer_balance_before
-    # Check fraudster account balance is unchanged.
-    assert fraudster_balance_after == fraudster_balance_before
+    assert (
+        buyer_balance_after - buyer_balance_before
+        == 0
+    )
+
