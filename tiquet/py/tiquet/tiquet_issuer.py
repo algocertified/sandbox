@@ -1,5 +1,6 @@
 import base64
 
+from tiquet.common import constants
 from tiquet.common.algorand_helper import AlgorandHelper
 from algosdk.future.transaction import (
     ApplicationCreateTxn,
@@ -17,7 +18,7 @@ class TiquetIssuer:
     Represents a tiquet issuer.
     """
 
-    ESCROW_DEPOSIT_AMT = 1000000
+    _ESCROW_DEPOSIT_AMT = 1000000
 
     def __init__(
         self,
@@ -30,6 +31,7 @@ class TiquetIssuer:
         algodclient,
         algod_params,
         logger,
+        tiquet_io_account,
     ):
         self.pk = pk
         self.sk = sk
@@ -40,11 +42,12 @@ class TiquetIssuer:
         self.algodclient = algodclient
         self.algod_params = algod_params
         self.logger = logger
+        self.tiquet_io_account = tiquet_io_account
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
-    def issue_tiquet(self, tiquet_price):
-        tiquet_id = self._create_tasa()
-        app_id = self._deploy_tiquet_app(tiquet_id, tiquet_price)
+    def issue_tiquet(self, name, price):
+        tiquet_id = self._create_tasa(name)
+        app_id = self._deploy_tiquet_app(tiquet_id, price)
         escrow_lsig = self._deploy_tiquet_escrow(app_id, tiquet_id)
         escrow_address = escrow_lsig.address()
         self._set_tiquet_clawback(tiquet_id, escrow_address)
@@ -52,19 +55,18 @@ class TiquetIssuer:
         self._store_escrow_address(app_id, tiquet_id, escrow_address)
         return (tiquet_id, app_id, escrow_lsig)
 
-    def _create_tasa(self):
+    def _create_tasa(self, name):
         txn = AssetConfigTxn(
             sender=self.pk,
             sp=self.algod_params,
             total=1,
             default_frozen=False,
-            unit_name="Tiquet",
             asset_name="tiquet",
             manager=self.pk,
             reserve=self.pk,
             freeze=self.pk,
             clawback=self.pk,
-            url="https://tiquet.io/tiquet",
+            url="https://tiquet.io/tiquet/%s" % name,
             decimals=0,
         )
 
@@ -78,9 +80,9 @@ class TiquetIssuer:
 
         return tasa_id
 
-    def _deploy_tiquet_app(self, tasa_id, tiquet_price):
+    def _deploy_tiquet_app(self, tasa_id, price):
         var_assigns = {
-            "TIQUET_PRICE": tiquet_price,
+            "TIQUET_PRICE": price,
             "TIQUET_ID": tasa_id,
             "ISSUER_ADDRESS": self.pk,
         }
@@ -120,6 +122,8 @@ class TiquetIssuer:
         var_assigns = {
             "TIQUET_APP_ID": app_id,
             "TIQUET_ID": tasa_id,
+            "TIQUET_IO_PROCESSING_FEE": constants.TIQUET_IO_PROCESSING_FEE,
+            "TIQUET_IO_ADDRESS": self.tiquet_io_account,
             "ISSUER_ADDRESS": self.pk,
         }
         escrow_prog = self._get_prog(self.escrow_fpath, var_assigns=var_assigns)
@@ -146,7 +150,7 @@ class TiquetIssuer:
             sender=self.pk,
             sp=self.algod_params,
             receiver=escrow_address,
-            amt=self.ESCROW_DEPOSIT_AMT,
+            amt=self._ESCROW_DEPOSIT_AMT,
         )
 
         stxn = txn.sign(self.sk)

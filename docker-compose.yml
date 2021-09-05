@@ -66,6 +66,7 @@ services:
       APP_FPATH: "/root/tiquet/teal/tiquet_app.teal"
       CLEAR_FPATH: "/root/tiquet/teal/clear.teal"
       ESCROW_FPATH: "/root/tiquet/teal/escrow.teal"
+      SUCCESS_TEAL_FPATH: "/root/tiquet/teal/success.teal"
       MNEMONICS_FILE: "/tmp/config/mnemonics_privnet.txt"
       NETWORK: "privnet"
     volumes:
@@ -86,6 +87,7 @@ services:
       APP_FPATH: "/root/tiquet/teal/tiquet_app.teal"
       CLEAR_FPATH: "/root/tiquet/teal/clear.teal"
       ESCROW_FPATH: "/root/tiquet/teal/escrow.teal"
+      SUCCESS_TEAL_FPATH: "/root/tiquet/teal/success.teal"
       MNEMONICS_FILE: "/tmp/config/mnemonics_testnet.txt"
       NETWORK: "testnet"
     volumes:

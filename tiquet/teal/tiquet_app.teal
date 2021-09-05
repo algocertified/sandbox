@@ -74,12 +74,18 @@ addr {{ISSUER_ADDRESS}}
 int {{TIQUET_ID}}
 asset_holding_get AssetBalance
 // Go to initial sale journey if the issuer own's the TASA.
+store 0
+store 1
+load 0
 bnz initial_sale
 // 0th-index value into accounts array, i.e. caller's address. 
 int 0
 int {{TIQUET_ID}}
 asset_holding_get AssetBalance
 // Otherwise, go to resale journey if the caller own's the TASA.
+store 0
+store 1
+load 0
 bnz resale
 // Fail otherwise.
 int 0
@@ -101,7 +107,7 @@ b end_tiquet_app
 initial_sale:
 
 global GroupSize
-int 3
+int 4
 ==
 gtxn 0 TypeEnum
 int appl
@@ -124,6 +130,10 @@ int pay
 byte "PRICE"
 app_global_get
 gtxn 2 Amount
+==
+&&
+gtxn 3 TypeEnum
+int pay
 ==
 &&
 bnz success

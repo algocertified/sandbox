@@ -10,7 +10,7 @@
             },
             {
                 "Name": "Wallet2",
-                "Stake": 40,
+                "Stake": 5,
                 "Online": true
             },
             {
@@ -20,7 +20,12 @@
             },
             {
                 "Name": "Wallet4",
-                "Stake": 10,
+                "Stake": 40,
+                "Online": false
+            },
+            {
+                "Name": "Wallet5",
+                "Stake": 5,
                 "Online": false
             }
         ]
@@ -49,6 +54,10 @@
                 },
                 {
                     "Name": "Wallet4",
+                    "ParticipationOnly": false
+                },
+                {
+                    "Name": "Wallet5",
                     "ParticipationOnly": false
                 }
             ]
