@@ -19,6 +19,7 @@ _ALGOD_TOKEN_ENVVAR = "ALGOD_TOKEN"
 _APP_TEAL_FPATH_ENVVAR = "APP_FPATH"
 _CLEAR_TEAL_FPATH_ENVVAR = "CLEAR_FPATH"
 _ESCROW_TEAL_FPATH_ENVVAR = "ESCROW_FPATH"
+_SUCCESS_TEAL_FPATH_ENVVAR = "SUCCESS_TEAL_FPATH"
 
 
 @pytest.fixture(scope="module")
@@ -79,6 +80,11 @@ def clear_fpath(logger):
 @pytest.fixture(scope="module")
 def escrow_fpath(logger):
     return _get_envvar_value(_ESCROW_TEAL_FPATH_ENVVAR, logger)
+
+
+@pytest.fixture(scope="module")
+def success_teal_fpath(logger):
+    return _get_envvar_value(_SUCCESS_TEAL_FPATH_ENVVAR, logger)
 
 
 @pytest.fixture(scope="module")
