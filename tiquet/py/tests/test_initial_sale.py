@@ -75,47 +75,46 @@ def test_initial_sale_no_tiquet_payment(
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
 
+    
+    # Application call to execute sale.
+    txn1 = transaction.ApplicationNoOpTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        index=app_id,
+        accounts=[issuer_account["pk"]],
+        foreign_assets=[tiquet_id],
+    )
+
+    # Tiquet transfer to buyer.
+    txn2 = transaction.AssetTransferTxn(
+        sender=escrow_lsig.address(),
+        sp=algod_params,
+        receiver=buyer_account["pk"],
+        amt=1,
+        index=tiquet_id,
+        revocation_target=issuer_account["pk"],
+    )
+
+    # Processing fee to tiquet.io.
+    txn3 = transaction.PaymentTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        receiver=tiquet_io_account["pk"],
+        amt=constants.TIQUET_IO_PROCESSING_FEE,
+    )
+
+    gid = transaction.calculate_group_id([txn1, txn2, txn3])
+    txn1.group = gid
+    txn2.group = gid
+    txn3.group = gid
+
+    stxn1 = txn1.sign(buyer_account["sk"])
+    stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
+    assert stxn2.verify()
+    stxn3 = txn3.sign(buyer_account["sk"])
+
     with pytest.raises(AlgodHTTPError) as e:
-        # Application call to execute sale.
-        txn1 = transaction.ApplicationNoOpTxn(
-            sender=buyer_account["pk"],
-            sp=algod_params,
-            index=app_id,
-            accounts=[issuer_account["pk"]],
-            foreign_assets=[tiquet_id],
-        )
-
-        # Tiquet transfer to buyer.
-        txn2 = transaction.AssetTransferTxn(
-            sender=escrow_lsig.address(),
-            sp=algod_params,
-            receiver=buyer_account["pk"],
-            amt=1,
-            index=tiquet_id,
-            revocation_target=issuer_account["pk"],
-        )
-
-        # Processing fee to tiquet.io.
-        txn3 = transaction.PaymentTxn(
-            sender=buyer_account["pk"],
-            sp=algod_params,
-            receiver=tiquet_io_account["pk"],
-            amt=constants.TIQUET_IO_PROCESSING_FEE,
-        )
-
-        gid = transaction.calculate_group_id([txn1, txn2, txn3])
-        txn1.group = gid
-        txn2.group = gid
-        txn3.group = gid
-
-        stxn1 = txn1.sign(buyer_account["sk"])
-        stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
-        assert stxn2.verify()
-        stxn3 = txn3.sign(buyer_account["sk"])
-
         txid = algodclient.send_transactions([stxn1, stxn2, stxn3])
-        algorand_helper.wait_for_confirmation(txid)
-
         assert "transaction rejected by ApprovalProgram" in e.message
 
     tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
@@ -206,57 +205,55 @@ def test_initial_sale_payment_to_non_issuer(
     buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
     fraudster_balance_before = algorand_helper.get_amount(fraudster_account["pk"])
 
+    # Application call to execute sale.
+    txn1 = transaction.ApplicationNoOpTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        index=app_id,
+        accounts=[issuer_account["pk"]],
+        foreign_assets=[tiquet_id],
+    )
+
+    # Tiquet transfer to buyer.
+    txn2 = transaction.AssetTransferTxn(
+        sender=escrow_lsig.address(),
+        sp=algod_params,
+        receiver=buyer_account["pk"],
+        amt=1,
+        index=tiquet_id,
+        revocation_target=issuer_account["pk"],
+    )
+
+    # Tiquet payment to seller. 
+    txn3 = transaction.PaymentTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        receiver=fraudster_account["pk"],
+        amt=tiquet_price,
+    )
+
+    # Processing fee to tiquet.io.
+    txn4 = transaction.PaymentTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        receiver=tiquet_io_account["pk"],
+        amt=constants.TIQUET_IO_PROCESSING_FEE,
+    )
+
+    gid = transaction.calculate_group_id([txn1, txn2, txn3, txn4])
+    txn1.group = gid
+    txn2.group = gid
+    txn3.group = gid
+    txn4.group = gid
+
+    stxn1 = txn1.sign(buyer_account["sk"])
+    stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
+    assert stxn2.verify()
+    stxn3 = txn3.sign(buyer_account["sk"])
+    stxn4 = txn4.sign(buyer_account["sk"])
+
     with pytest.raises(AlgodHTTPError) as e:
-        # Application call to execute sale.
-        txn1 = transaction.ApplicationNoOpTxn(
-            sender=buyer_account["pk"],
-            sp=algod_params,
-            index=app_id,
-            accounts=[issuer_account["pk"]],
-            foreign_assets=[tiquet_id],
-        )
-
-        # Tiquet transfer to buyer.
-        txn2 = transaction.AssetTransferTxn(
-            sender=escrow_lsig.address(),
-            sp=algod_params,
-            receiver=buyer_account["pk"],
-            amt=1,
-            index=tiquet_id,
-            revocation_target=issuer_account["pk"],
-        )
-
-        # Tiquet payment to seller. 
-        txn3 = transaction.PaymentTxn(
-            sender=buyer_account["pk"],
-            sp=algod_params,
-            receiver=fraudster_account["pk"],
-            amt=tiquet_price,
-        )
-
-        # Processing fee to tiquet.io.
-        txn4 = transaction.PaymentTxn(
-            sender=buyer_account["pk"],
-            sp=algod_params,
-            receiver=tiquet_io_account["pk"],
-            amt=constants.TIQUET_IO_PROCESSING_FEE,
-        )
-
-        gid = transaction.calculate_group_id([txn1, txn2, txn3, txn4])
-        txn1.group = gid
-        txn2.group = gid
-        txn3.group = gid
-        txn4.group = gid
-
-        stxn1 = txn1.sign(buyer_account["sk"])
-        stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
-        assert stxn2.verify()
-        stxn3 = txn3.sign(buyer_account["sk"])
-        stxn4 = txn4.sign(buyer_account["sk"])
-
         txid = algodclient.send_transactions([stxn1, stxn2, stxn3, stxn4])
-        algorand_helper.wait_for_confirmation(txid)
-
         assert "transaction rejected by ApprovalProgram" in e.message
 
     tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
@@ -298,47 +295,45 @@ def test_initial_sale_no_processing_fee(
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
 
+    # Application call to execute sale.
+    txn1 = transaction.ApplicationNoOpTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        index=app_id,
+        accounts=[issuer_account["pk"]],
+        foreign_assets=[tiquet_id],
+    )
+
+    # Tiquet transfer to buyer.
+    txn2 = transaction.AssetTransferTxn(
+        sender=escrow_lsig.address(),
+        sp=algod_params,
+        receiver=buyer_account["pk"],
+        amt=1,
+        index=tiquet_id,
+        revocation_target=issuer_account["pk"],
+    )
+
+    # Tiquet payment to seller. 
+    txn3 = transaction.PaymentTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        receiver=issuer_account["pk"],
+        amt=tiquet_price,
+    )
+
+    gid = transaction.calculate_group_id([txn1, txn2, txn3])
+    txn1.group = gid
+    txn2.group = gid
+    txn3.group = gid
+
+    stxn1 = txn1.sign(buyer_account["sk"])
+    stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
+    assert stxn2.verify()
+    stxn3 = txn3.sign(buyer_account["sk"])
+
     with pytest.raises(AlgodHTTPError) as e:
-        # Application call to execute sale.
-        txn1 = transaction.ApplicationNoOpTxn(
-            sender=buyer_account["pk"],
-            sp=algod_params,
-            index=app_id,
-            accounts=[issuer_account["pk"]],
-            foreign_assets=[tiquet_id],
-        )
-
-        # Tiquet transfer to buyer.
-        txn2 = transaction.AssetTransferTxn(
-            sender=escrow_lsig.address(),
-            sp=algod_params,
-            receiver=buyer_account["pk"],
-            amt=1,
-            index=tiquet_id,
-            revocation_target=issuer_account["pk"],
-        )
-
-        # Tiquet payment to seller. 
-        txn3 = transaction.PaymentTxn(
-            sender=buyer_account["pk"],
-            sp=algod_params,
-            receiver=issuer_account["pk"],
-            amt=tiquet_price,
-        )
-
-        gid = transaction.calculate_group_id([txn1, txn2, txn3])
-        txn1.group = gid
-        txn2.group = gid
-        txn3.group = gid
-
-        stxn1 = txn1.sign(buyer_account["sk"])
-        stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
-        assert stxn2.verify()
-        stxn3 = txn3.sign(buyer_account["sk"])
-
         txid = algodclient.send_transactions([stxn1, stxn2, stxn3])
-        algorand_helper.wait_for_confirmation(txid)
-
         assert "transaction rejected by ApprovalProgram" in e.message
 
     tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
