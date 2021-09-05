@@ -1,71 +1,28 @@
-import base64
 import pytest
-import uuid
 
 from algosdk.error import AlgodHTTPError
 from algosdk.future import transaction
 from fixtures import *
 from tiquet.common import constants
-from tiquet.common.algorand_helper import AlgorandHelper
-from tiquet.tiquet_client import TiquetClient
-from tiquet.tiquet_issuer import TiquetIssuer
 
 
 # Tests are flaky, sometimes failing because account funds change by unexpected
 # amounts.
 
 def test_initial_sale_success(
-    accounts,
+    tiquet_io_account,
+    issuer_account,
+    buyer_account,
+    tiquet_price,
+    issuer,
+    tiquet_issuance_info,
+    buyer,
     algodclient,
     algod_params,
     algorand_helper,
     logger,
-    app_fpath,
-    clear_fpath,
-    escrow_fpath,
 ):
-    # Get the tiquet.io account.
-    tiquet_io_account = accounts.get_tiquet_io_account()
-    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
-
-    # Get issuer algorand account, with public and secret keys.
-    issuer_account = accounts.get_issuer_account()
-    logger.debug("Issuer address: {}".format(issuer_account["pk"]))
-
-    issuer = TiquetIssuer(
-        pk=issuer_account["pk"],
-        sk=issuer_account["sk"],
-        mnemonic=issuer_account["mnemonic"],
-        app_fpath=app_fpath,
-        clear_fpath=clear_fpath,
-        escrow_fpath=escrow_fpath,
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
-
-    tiquet_name = uuid.uuid4()
-    tiquet_price = 100000000000
-    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_name, tiquet_price)
-
-    logger.debug("Tiquet Id: {}".format(tiquet_id))
-    logger.debug("App Id: {}".format(app_id))
-    logger.debug("Escrow address: {}".format(escrow_lsig.address()))
-
-    buyer_account = accounts.get_buyer_account()
-    logger.debug("Buyer address: {}".format(buyer_account["pk"]))
-
-    buyer = TiquetClient(
-        pk=buyer_account["pk"],
-        sk=buyer_account["sk"],
-        mnemonic=buyer_account["mnemonic"],
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        escrow_lsig=escrow_lsig,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
     tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
@@ -98,57 +55,19 @@ def test_initial_sale_success(
     )
 
 def test_initial_sale_no_tiquet_payment(
-    accounts,
+    tiquet_io_account,
+    issuer_account,
+    buyer_account,
+    tiquet_price,
+    issuer,
+    tiquet_issuance_info,
+    buyer,
     algodclient,
     algod_params,
     algorand_helper,
     logger,
-    app_fpath,
-    clear_fpath,
-    escrow_fpath,
 ):
-    # Get the tiquet.io account.
-    tiquet_io_account = accounts.get_tiquet_io_account()
-    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
-
-    # Get issuer algorand account, with public and secret keys.
-    issuer_account = accounts.get_issuer_account()
-    logger.debug("Issuer address: {}".format(issuer_account["pk"]))
-
-    issuer = TiquetIssuer(
-        pk=issuer_account["pk"],
-        sk=issuer_account["sk"],
-        mnemonic=issuer_account["mnemonic"],
-        app_fpath=app_fpath,
-        clear_fpath=clear_fpath,
-        escrow_fpath=escrow_fpath,
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
-
-    tiquet_name = uuid.uuid4()
-    tiquet_price = 100000000000
-    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_name, tiquet_price)
-
-    logger.debug("Tiquet Id: {}".format(tiquet_id))
-    logger.debug("App Id: {}".format(app_id))
-    logger.debug("Escrow address: {}".format(escrow_lsig.address()))
-
-    buyer_account = accounts.get_buyer_account()
-    logger.debug("Buyer address: {}".format(buyer_account["pk"]))
-
-    buyer = TiquetClient(
-        pk=buyer_account["pk"],
-        sk=buyer_account["sk"],
-        mnemonic=buyer_account["mnemonic"],
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        escrow_lsig=escrow_lsig,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
     buyer.tiquet_opt_in(tiquet_id)
 
@@ -218,57 +137,19 @@ def test_initial_sale_no_tiquet_payment(
     )
 
 def test_initial_sale_insufficient_payment_amount(
-    accounts,
+    tiquet_io_account,
+    issuer_account,
+    buyer_account,
+    tiquet_price,
+    issuer,
+    tiquet_issuance_info,
+    buyer,
     algodclient,
     algod_params,
     algorand_helper,
     logger,
-    app_fpath,
-    clear_fpath,
-    escrow_fpath,
 ):
-    # Get the tiquet.io account.
-    tiquet_io_account = accounts.get_tiquet_io_account()
-    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
-
-    # Get issuer algorand account, with public and secret keys.
-    issuer_account = accounts.get_issuer_account()
-    logger.debug("Issuer address: {}".format(issuer_account["pk"]))
-
-    issuer = TiquetIssuer(
-        pk=issuer_account["pk"],
-        sk=issuer_account["sk"],
-        mnemonic=issuer_account["mnemonic"],
-        app_fpath=app_fpath,
-        clear_fpath=clear_fpath,
-        escrow_fpath=escrow_fpath,
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
-
-    tiquet_name = uuid.uuid4()
-    tiquet_price = 100000000000
-    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_name, tiquet_price)
-
-    logger.debug("Tiquet Id: {}".format(tiquet_id))
-    logger.debug("App Id: {}".format(app_id))
-    logger.debug("Escrow address: {}".format(escrow_lsig.address()))
-
-    buyer_account = accounts.get_buyer_account()
-    logger.debug("Buyer address: {}".format(buyer_account["pk"]))
-
-    buyer = TiquetClient(
-        pk=buyer_account["pk"],
-        sk=buyer_account["sk"],
-        mnemonic=buyer_account["mnemonic"],
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        escrow_lsig=escrow_lsig,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
     tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
@@ -303,59 +184,20 @@ def test_initial_sale_insufficient_payment_amount(
     )
 
 def test_initial_sale_payment_to_non_issuer(
-    accounts,
+    tiquet_io_account,
+    issuer_account,
+    buyer_account,
+    fraudster_account,
+    tiquet_price,
+    issuer,
+    tiquet_issuance_info,
+    buyer,
     algodclient,
     algod_params,
     algorand_helper,
     logger,
-    app_fpath,
-    clear_fpath,
-    escrow_fpath,
 ):
-    # Get the tiquet.io account.
-    tiquet_io_account = accounts.get_tiquet_io_account()
-    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
-
-    # Get issuer algorand account, with public and secret keys.
-    issuer_account = accounts.get_issuer_account()
-    logger.debug("Issuer address: {}".format(issuer_account["pk"]))
-
-    issuer = TiquetIssuer(
-        pk=issuer_account["pk"],
-        sk=issuer_account["sk"],
-        mnemonic=issuer_account["mnemonic"],
-        app_fpath=app_fpath,
-        clear_fpath=clear_fpath,
-        escrow_fpath=escrow_fpath,
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
-
-    tiquet_name = uuid.uuid4()
-    tiquet_price = 100000000000
-    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_name, tiquet_price)
-
-    logger.debug("Tiquet Id: {}".format(tiquet_id))
-    logger.debug("App Id: {}".format(app_id))
-    logger.debug("Escrow address: {}".format(escrow_lsig.address()))
-
-    buyer_account = accounts.get_buyer_account()
-    logger.debug("Buyer address: {}".format(buyer_account["pk"]))
-    fraudster_account = accounts.get_fraudster_account()
-    logger.debug("Fraudster address: {}".format(fraudster_account["pk"]))
-
-    buyer = TiquetClient(
-        pk=buyer_account["pk"],
-        sk=buyer_account["sk"],
-        mnemonic=buyer_account["mnemonic"],
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        escrow_lsig=escrow_lsig,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
     buyer.tiquet_opt_in(tiquet_id)
 
@@ -436,57 +278,19 @@ def test_initial_sale_payment_to_non_issuer(
     assert fraudster_balance_after == fraudster_balance_before
 
 def test_initial_sale_no_processing_fee(
-    accounts,
+    tiquet_io_account,
+    issuer_account,
+    buyer_account,
+    tiquet_price,
+    issuer,
+    tiquet_issuance_info,
+    buyer,
     algodclient,
     algod_params,
     algorand_helper,
     logger,
-    app_fpath,
-    clear_fpath,
-    escrow_fpath,
 ):
-    # Get the tiquet.io account.
-    tiquet_io_account = accounts.get_tiquet_io_account()
-    logger.debug("tiquet.io address: {}".format(tiquet_io_account["pk"]))
-
-    # Get issuer algorand account, with public and secret keys.
-    issuer_account = accounts.get_issuer_account()
-    logger.debug("Issuer address: {}".format(issuer_account["pk"]))
-
-    issuer = TiquetIssuer(
-        pk=issuer_account["pk"],
-        sk=issuer_account["sk"],
-        mnemonic=issuer_account["mnemonic"],
-        app_fpath=app_fpath,
-        clear_fpath=clear_fpath,
-        escrow_fpath=escrow_fpath,
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
-
-    tiquet_name = uuid.uuid4()
-    tiquet_price = 100000000000
-    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_name, tiquet_price)
-
-    logger.debug("Tiquet Id: {}".format(tiquet_id))
-    logger.debug("App Id: {}".format(app_id))
-    logger.debug("Escrow address: {}".format(escrow_lsig.address()))
-
-    buyer_account = accounts.get_buyer_account()
-    logger.debug("Buyer address: {}".format(buyer_account["pk"]))
-
-    buyer = TiquetClient(
-        pk=buyer_account["pk"],
-        sk=buyer_account["sk"],
-        mnemonic=buyer_account["mnemonic"],
-        algodclient=algodclient,
-        algod_params=algod_params,
-        logger=logger,
-        escrow_lsig=escrow_lsig,
-        tiquet_io_account=tiquet_io_account["pk"],
-    )
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
     buyer.tiquet_opt_in(tiquet_id)
 
