@@ -1,3 +1,4 @@
+import base64
 import json
 
 
@@ -36,6 +37,26 @@ class AlgorandHelper:
     def created_app(self, account, app_id):
         account_info = self.client.account_info(account)
         return any(app["id"] == app_id for app in account_info["created-apps"])
+
+    def has_global_var(self, app_id, var_key, var_type, var_val):
+        application_info = self.client.application_info(app_id)
+        if "global-state" not in application_info["params"]:
+            raise ValueError("App %d has no global state" % app_id)
+
+        if var_type == 1:
+            var_val_key = "bytes"
+        elif var_type == 2:
+            var_val_key = "uint"
+        else:
+            raise ValueError("Unrecognized variable type: " + str(var_type))
+
+        var_key = str(base64.b64encode(var_key.encode("ascii")))[2:-1]
+        return any(
+            global_var["key"] == var_key
+            and global_var["value"]["type"] == var_type
+            and global_var["value"][var_val_key] == var_val
+            for global_var in application_info["params"]["global-state"]
+        )
 
     def has_asset(self, account, assetid, amount=1):
         account_info = self.client.account_info(account)
