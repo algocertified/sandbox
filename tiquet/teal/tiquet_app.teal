@@ -31,10 +31,13 @@ b end_tiquet_app
 /////////////////////
 
 tiquet_creation:
-// Set tiquet price to 99 microAlgos.
+// Set tiquet price.
 // TODO: Represent price in USD.
 byte "PRICE"
 int {{TIQUET_PRICE}}
+app_global_put
+byte "FOR_SALE"
+int 1
 app_global_put
 int 1
 return
