@@ -2,6 +2,7 @@ import base64
 
 from tiquet.common import constants
 from tiquet.common.algorand_helper import AlgorandHelper
+from algosdk import encoding
 from algosdk.future.transaction import (
     ApplicationCreateTxn,
     ApplicationNoOpTxn,
@@ -89,8 +90,6 @@ class TiquetIssuer:
         app_prog = self._get_prog(self.app_fpath, var_assigns=var_assigns)
         clear_prog = self._get_prog(self.clear_fpath)
 
-        self.logger.debug("app_prog: " + str(app_prog))
-
         local_ints = 0
         local_bytes = 0
         global_ints = 1
@@ -164,7 +163,8 @@ class TiquetIssuer:
             index=app_id,
             accounts=[self.pk],
             foreign_assets=[tiquet_id],
-            app_args=[escrow_address],
+            app_args=[encoding.decode_address(escrow_address)]
+
         )
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
@@ -175,4 +175,5 @@ class TiquetIssuer:
             source = f.read()
             for var, value in var_assigns.items():
                 source = source.replace("{{%s}}" % var, str(value))
+            self.logger.debug("Final source for %s:\n%s" % (fpath, source))
             return base64.b64decode(self.algodclient.compile(source)["result"])

@@ -117,12 +117,11 @@ gtxn 1 TypeEnum
 int axfer
 ==
 &&
-// TODO: Check escrow is sender of tiquet transfer txn
-// byte "ESCROW_ADDRESS"
-// app_global_get
-// gtxn 1 Sender
-// ==
-// &&
+byte "ESCROW_ADDRESS"
+app_global_get
+gtxn 1 Sender
+==
+&&
 gtxn 2 TypeEnum
 int pay
 ==
