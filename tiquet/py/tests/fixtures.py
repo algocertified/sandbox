@@ -89,15 +89,15 @@ def success_teal_fpath(logger):
 
 @pytest.fixture(scope="module")
 def issuer(
-        tiquet_io_account,
-        issuer_account,
-        app_fpath,
-        clear_fpath,
-        escrow_fpath,
-        algodclient,
-        algod_params,
-        logger,
-    ):
+    tiquet_io_account,
+    issuer_account,
+    app_fpath,
+    clear_fpath,
+    escrow_fpath,
+    algodclient,
+    algod_params,
+    logger,
+):
     return TiquetIssuer(
         pk=issuer_account["pk"],
         sk=issuer_account["sk"],
@@ -124,13 +124,13 @@ def tiquet_issuance_info(issuer, tiquet_price, logger):
 
 @pytest.fixture(scope="function")
 def buyer(
-        tiquet_io_account,
-        buyer_account,
-        tiquet_issuance_info,
-        algodclient,
-        algod_params,
-        logger,
-    ):
+    tiquet_io_account,
+    buyer_account,
+    tiquet_issuance_info,
+    algodclient,
+    algod_params,
+    logger,
+):
     tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
     return TiquetClient(
         pk=buyer_account["pk"],

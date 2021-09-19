@@ -32,7 +32,7 @@ def test_spoof_issue_tiquet_fail(
     algodclient,
     algod_params,
     algorand_helper,
-    logger
+    logger,
 ):
     issuer = TiquetIssuer(
         pk=issuer_account["pk"],

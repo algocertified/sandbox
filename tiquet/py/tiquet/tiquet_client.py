@@ -17,7 +17,7 @@ class TiquetClient:
         algod_params,
         logger,
         escrow_lsig,
-        tiquet_io_account
+        tiquet_io_account,
     ):
         self.pk = pk
         self.sk = sk
@@ -51,7 +51,7 @@ class TiquetClient:
             revocation_target=seller_account,
         )
 
-        # Tiquet payment to seller. 
+        # Tiquet payment to seller.
         txn3 = transaction.PaymentTxn(
             sender=self.pk,
             sp=self.algod_params,
