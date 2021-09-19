@@ -163,8 +163,7 @@ class TiquetIssuer:
             index=app_id,
             accounts=[self.pk],
             foreign_assets=[tiquet_id],
-            app_args=[encoding.decode_address(escrow_address)]
-
+            app_args=[encoding.decode_address(escrow_address)],
         )
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)

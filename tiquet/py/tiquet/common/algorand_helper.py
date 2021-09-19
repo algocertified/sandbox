@@ -39,7 +39,11 @@ class AlgorandHelper:
 
     def has_asset(self, account, assetid, amount=1):
         account_info = self.client.account_info(account)
-        return all(asset["amount"] == amount for asset in account_info["assets"] if asset["asset-id"] == assetid)
+        return all(
+            asset["amount"] == amount
+            for asset in account_info["assets"]
+            if asset["asset-id"] == assetid
+        )
 
     def get_amount(self, account):
         account_info = self.client.account_info(account)

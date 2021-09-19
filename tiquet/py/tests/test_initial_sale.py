@@ -10,6 +10,7 @@ from tiquet.common import constants
 # Tests are flaky, sometimes failing because account funds change by unexpected
 # amounts.
 
+
 def test_initial_sale_success(
     tiquet_io_account,
     issuer_account,
@@ -41,12 +42,15 @@ def test_initial_sale_success(
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
 
-    # Check tiquet is in possession of buyer.    
+    # Check tiquet is in possession of buyer.
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id)
     # Check tiquet is no longer in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id, amount=0)
     # Check tiquet.io account is credited processing fee.
-    assert tiquet_io_balance_after - tiquet_io_balance_before == constants.TIQUET_IO_PROCESSING_FEE
+    assert (
+        tiquet_io_balance_after - tiquet_io_balance_before
+        == constants.TIQUET_IO_PROCESSING_FEE
+    )
     # Check issuer account is credited tiquet amount.
     assert issuer_balance_after - issuer_balance_before == tiquet_price
     # Check buyer account is debited tiquet price and fees for 3 txns.
@@ -54,6 +58,7 @@ def test_initial_sale_success(
         buyer_balance_after - buyer_balance_before
         == -1 * tiquet_price - constants.TIQUET_IO_PROCESSING_FEE - 4 * algod_params.fee
     )
+
 
 def test_initial_sale_no_tiquet_payment(
     tiquet_io_account,
@@ -76,7 +81,6 @@ def test_initial_sale_no_tiquet_payment(
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
 
-    
     # Application call to execute sale.
     txn1 = transaction.ApplicationNoOpTxn(
         sender=buyer_account["pk"],
@@ -122,7 +126,7 @@ def test_initial_sale_no_tiquet_payment(
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
 
-    # Check tiquet is not in possession of buyer.    
+    # Check tiquet is not in possession of buyer.
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
@@ -131,10 +135,8 @@ def test_initial_sale_no_tiquet_payment(
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
     # Check buyer account balance is unchanged.
-    assert (
-        buyer_balance_after - buyer_balance_before
-        == 0
-    )
+    assert buyer_balance_after - buyer_balance_before == 0
+
 
 def test_initial_sale_insufficient_payment_amount(
     tiquet_io_account,
@@ -169,7 +171,7 @@ def test_initial_sale_insufficient_payment_amount(
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
 
-    # Check tiquet is not in possession of buyer.    
+    # Check tiquet is not in possession of buyer.
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
@@ -178,10 +180,8 @@ def test_initial_sale_insufficient_payment_amount(
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
     # Check buyer account is debited only fee for 1 asset opt-in txn.
-    assert (
-        buyer_balance_after - buyer_balance_before
-        == -1 * algod_params.fee
-    )
+    assert buyer_balance_after - buyer_balance_before == -1 * algod_params.fee
+
 
 def test_initial_sale_payment_to_non_issuer(
     tiquet_io_account,
@@ -225,7 +225,7 @@ def test_initial_sale_payment_to_non_issuer(
         revocation_target=issuer_account["pk"],
     )
 
-    # Tiquet payment to seller. 
+    # Tiquet payment to seller.
     txn3 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -262,7 +262,7 @@ def test_initial_sale_payment_to_non_issuer(
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
     fraudster_balance_after = algorand_helper.get_amount(fraudster_account["pk"])
 
-    # Check tiquet is not in possession of buyer.    
+    # Check tiquet is not in possession of buyer.
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
@@ -274,6 +274,7 @@ def test_initial_sale_payment_to_non_issuer(
     assert buyer_balance_after == buyer_balance_before
     # Check fraudster account balance is unchanged.
     assert fraudster_balance_after == fraudster_balance_before
+
 
 def test_initial_sale_no_processing_fee(
     tiquet_io_account,
@@ -315,7 +316,7 @@ def test_initial_sale_no_processing_fee(
         revocation_target=issuer_account["pk"],
     )
 
-    # Tiquet payment to seller. 
+    # Tiquet payment to seller.
     txn3 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -341,7 +342,7 @@ def test_initial_sale_no_processing_fee(
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
 
-    # Check tiquet is not in possession of buyer.    
+    # Check tiquet is not in possession of buyer.
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
@@ -350,10 +351,8 @@ def test_initial_sale_no_processing_fee(
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
     # Check buyer account balance is unchanged.
-    assert (
-        buyer_balance_after - buyer_balance_before
-        == 0
-    )
+    assert buyer_balance_after - buyer_balance_before == 0
+
 
 def test_initial_sale_processing_fee_to_non_tiquet_io(
     tiquet_io_account,
@@ -397,7 +396,7 @@ def test_initial_sale_processing_fee_to_non_tiquet_io(
         revocation_target=issuer_account["pk"],
     )
 
-    # Tiquet payment to seller. 
+    # Tiquet payment to seller.
     txn3 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -434,7 +433,7 @@ def test_initial_sale_processing_fee_to_non_tiquet_io(
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
     fraudster_balance_after = algorand_helper.get_amount(fraudster_account["pk"])
 
-    # Check tiquet is not in possession of buyer.    
+    # Check tiquet is not in possession of buyer.
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
@@ -490,7 +489,7 @@ def test_initial_sale_from_fraudster(
         revocation_target=issuer_account["pk"],
     )
 
-    # Send Tiquet payment from buyer to seller. 
+    # Send Tiquet payment from buyer to seller.
     txn3 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -527,7 +526,7 @@ def test_initial_sale_from_fraudster(
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
     fraudster_balance_after = algorand_helper.get_amount(fraudster_account["pk"])
 
-    # Check tiquet is not in possession of buyer.    
+    # Check tiquet is not in possession of buyer.
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
@@ -598,7 +597,7 @@ def test_initial_sale_with_fake_escrow(
         revocation_target=issuer_account["pk"],
     )
 
-    # Send Tiquet payment from buyer to seller. 
+    # Send Tiquet payment from buyer to seller.
     txn3 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -634,7 +633,7 @@ def test_initial_sale_with_fake_escrow(
     issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
     buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
 
-    # Check tiquet is not in possession of buyer.    
+    # Check tiquet is not in possession of buyer.
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
