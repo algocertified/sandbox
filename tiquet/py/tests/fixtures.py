@@ -68,6 +68,11 @@ def tiquet_price():
 
 
 @pytest.fixture(scope="module")
+def tiquet_resale_price():
+    return 200000000000
+
+
+@pytest.fixture(scope="module")
 def app_fpath(logger):
     return _get_envvar_value(_APP_TEAL_FPATH_ENVVAR, logger)
 
@@ -141,6 +146,19 @@ def buyer(
         logger=logger,
         escrow_lsig=escrow_lsig,
         tiquet_io_account=tiquet_io_account["pk"],
+    )
+
+
+@pytest.fixture(scope="function")
+def initial_sale(tiquet_issuance_info, buyer, issuer_account, tiquet_price, logger):
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
+
+    buyer.buy_tiquet(
+        tiquet_id=tiquet_id,
+        app_id=app_id,
+        issuer_account=issuer_account["pk"],
+        seller_account=issuer_account["pk"],
+        amount=tiquet_price,
     )
 
 

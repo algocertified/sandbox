@@ -94,3 +94,16 @@ class TiquetClient:
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
         return self.algodclient.pending_transaction_info(txid)
+
+    def post_for_resale(self, tiquet_id, app_id, tiquet_price):
+        txn = transaction.ApplicationNoOpTxn(
+            sender=self.pk,
+            sp=self.algod_params,
+            index=app_id,
+            accounts=[self.pk],
+            foreign_assets=[tiquet_id],
+            app_args=["POST_FOR_RESALE", tiquet_price],
+        )
+        stxn = txn.sign(self.sk)
+        txid = self.algorand_helper.send_and_wait_for_txn(stxn)
+        return self.algodclient.pending_transaction_info(txid)
