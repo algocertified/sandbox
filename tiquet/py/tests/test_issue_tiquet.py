@@ -3,12 +3,14 @@ import uuid
 
 from algosdk.error import AlgodHTTPError
 from fixtures import *
+from tiquet.common import constants
 from tiquet.tiquet_issuer import TiquetIssuer
 
 
 def test_issue_tiquet_success(
     tiquet_io_account,
     issuer_account,
+    tiquet_price,
     tiquet_issuance_info,
     algodclient,
     algod_params,
@@ -19,6 +21,20 @@ def test_issue_tiquet_success(
 
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
     assert algorand_helper.created_app(issuer_account["pk"], app_id)
+    # Check tiquet price global variable is set and is assigned the correct value.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type=2,
+        var_val=tiquet_price,
+    )
+    # Check tiquet for-sale flag global variable is set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type=2,
+        var_val=1,
+    )
 
 
 def test_spoof_issue_tiquet_fail(
