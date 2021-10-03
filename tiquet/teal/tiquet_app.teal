@@ -138,6 +138,9 @@ gtxn 3 TypeEnum
 int pay
 ==
 &&
+byte "FOR_SALE"
+int 0
+app_global_put
 bnz success
 b failure
 
