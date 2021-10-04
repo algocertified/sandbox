@@ -13,10 +13,12 @@ class NetworkAccounts:
     _MNEMONICS_FILE_ENVVAR = "MNEMONICS_FILE"
 
     # Indices into accounts list.
-    _TIQUET_IO_IDX = 0
-    _FRAUDSTER_IDX = 1
-    _ISSUER_IDX = 2
-    _BUYER_IDX = 3
+    
+    _ISSUER_IDX = 0
+    _BUYER_IDX = 1
+    _FRAUDSTER_IDX = 2
+    _SECOND_BUYER_IDX = 3
+    _TIQUET_IO_IDX = 4
 
     def __init__(self):
         self.accounts = self._create_accounts()
@@ -54,9 +56,6 @@ class NetworkAccounts:
 
         return os.environ.get(self._MNEMONICS_FILE_ENVVAR)
 
-    def get_tiquet_io_account(self):
-        return self.accounts[self._TIQUET_IO_IDX]
-
     def get_issuer_account(self):
         return self.accounts[self._ISSUER_IDX]
 
@@ -66,10 +65,8 @@ class NetworkAccounts:
     def get_fraudster_account(self):
         return self.accounts[self._FRAUDSTER_IDX]
 
-    def get_accounts(self):
-        return (
-            self.get_tiquet_io_account(),
-            self.get_issuer_account(),
-            self.get_buyer_account(),
-            self.get_fraudster_account(),
-        )
+    def get_second_buyer_account(self):
+        return self.accounts[self._SECOND_BUYER_IDX]
+
+    def get_tiquet_io_account(self):
+        return self.accounts[self._TIQUET_IO_IDX]
