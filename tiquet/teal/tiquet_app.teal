@@ -31,10 +31,13 @@ b end_tiquet_app
 /////////////////////
 
 tiquet_creation:
-// Set tiquet price to 99 microAlgos.
+// Set tiquet price.
 // TODO: Represent price in USD.
 byte "PRICE"
 int {{TIQUET_PRICE}}
+app_global_put
+byte "FOR_SALE"
+int 1
 app_global_put
 int 1
 return
@@ -65,7 +68,13 @@ b end_tiquet_app
 // Application  //
 //////////////////
 
+// TODO: Activate different code paths via commands specified via an application
+// arg
 tiquet:
+txn NumAppArgs
+int 2
+==
+bnz post_for_resale
 txn NumAppArgs
 int 1
 ==
@@ -135,8 +144,34 @@ gtxn 3 TypeEnum
 int pay
 ==
 &&
+byte "FOR_SALE"
+int 0
+app_global_put
 bnz success
 b failure
+
+/////////////////////
+// Post for Resale //
+/////////////////////
+
+post_for_resale:
+// 0th-index value into accounts array, i.e. caller's address. 
+int 0
+int {{TIQUET_ID}}
+asset_holding_get AssetBalance
+store 0
+store 1
+load 0
+// Fail if the caller doesn't own the TASA.
+bz failure
+byte "FOR_SALE"
+int 1
+app_global_put
+byte "PRICE"
+txna ApplicationArgs 1
+btoi
+app_global_put
+b success
 
 ////////////
 // Resale //

@@ -92,7 +92,7 @@ class TiquetIssuer:
 
         local_ints = 0
         local_bytes = 0
-        global_ints = 1
+        global_ints = 2
         global_bytes = 1
         global_schema = StateSchema(global_ints, global_bytes)
         local_schema = StateSchema(local_ints, local_bytes)
