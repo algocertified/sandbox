@@ -54,6 +54,57 @@ def test_post_for_resale_success(
     assert buyer_balance_after - buyer_balance_before == -1 * algod_params.fee
 
 
+def test_update_resale_price_success(
+    buyer_account,
+    tiquet_issuance_info,
+    initial_sale,
+    buyer,
+    tiquet_resale_price,
+    algodclient,
+    algod_params,
+    algorand_helper,
+    logger,
+):
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
+
+    buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
+
+    buyer.post_for_resale(
+        tiquet_id=tiquet_id,
+        app_id=app_id,
+        tiquet_price=tiquet_resale_price,
+    )
+
+    new_tiquet_resale_price = 300000000000
+
+    buyer.post_for_resale(
+        tiquet_id=tiquet_id,
+        app_id=app_id,
+        tiquet_price=new_tiquet_resale_price,
+    )
+
+    buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
+
+    # Check tiquet is still in possession of buyer.
+    assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id)
+    # Check tiquet price global variable is set and is assigned the updated price.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type=2,
+        var_val=new_tiquet_resale_price,
+    )
+    # Check tiquet for-sale flag global variable is set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type=2,
+        var_val=1,
+    )
+    # Check buyer account is debited fee for 2 txns.
+    assert buyer_balance_after - buyer_balance_before == -2 * algod_params.fee
+
+
 def test_post_for_resale_from_fraudster(
     buyer_account,
     fraudster_account,
