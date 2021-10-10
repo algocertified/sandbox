@@ -21,19 +21,26 @@ def test_issue_tiquet_success(
 
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
     assert algorand_helper.created_app(issuer_account["pk"], app_id)
-    # Check tiquet price global variable is set and is assigned the correct value.
+    # Check tiquet price global variable is set and is assigned the correct price.
     assert algorand_helper.has_global_var(
         app_id=app_id,
         var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
-        var_type=2,
+        var_type="int",
         var_val=tiquet_price,
     )
     # Check tiquet for-sale flag global variable is set to true.
     assert algorand_helper.has_global_var(
         app_id=app_id,
         var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
-        var_type=2,
+        var_type="int",
         var_val=1,
+    )
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
     )
 
 
