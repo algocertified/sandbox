@@ -79,7 +79,7 @@ txn NumAppArgs
 int 1
 ==
 bnz store_escrow_address
-b initial_sale
+b sale
 // Fail otherwise.
 int 0
 return
@@ -97,7 +97,7 @@ b end_tiquet_app
 // Initial Sale  //
 ///////////////////
 
-initial_sale:
+sale:
 
 global GroupSize
 int 4
