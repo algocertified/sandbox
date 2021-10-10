@@ -2,18 +2,11 @@
 
 global GroupSize
 int 4
-==
-bnz initial_sale
-global GroupSize
-int 5
-==
-bnz resale
-b failure
-
-initial_sale:
+>=
 gtxn 0 TypeEnum
 int appl
 ==
+&&
 gtxn 0 ApplicationID
 int {{TIQUET_APP_ID}}
 ==
@@ -23,7 +16,7 @@ int axfer
 ==
 &&
 gtxn 1 AssetReceiver
-gtxn 2 Sender
+gtxn 0 Sender
 ==
 &&
 gtxn 1 XferAsset
@@ -52,10 +45,6 @@ int pay
 &&
 gtxn 2 Sender
 gtxn 0 Sender
-==
-&&
-gtxn 2 Receiver
-addr {{ISSUER_ADDRESS}}
 ==
 &&
 gtxn 3 TypeEnum
@@ -75,79 +64,23 @@ int {{TIQUET_IO_PROCESSING_FEE}}
 ==
 &&
 store 0
-b success
+global GroupSize
+int 4
+==
+bnz finish_initial_sale
+global GroupSize
+int 5
+==
+bnz finish_resale
+b failure
 
-resale:
-gtxn 0 TypeEnum
-int appl
-==
-gtxn 0 ApplicationID
-int {{TIQUET_APP_ID}}
-==
-&&
-gtxn 1 TypeEnum
-int axfer
-==
-&&
-gtxn 1 AssetReceiver
-gtxn 2 Sender
-==
-&&
-gtxn 1 XferAsset
-int {{TIQUET_ID}}
-==
-&&
-gtxn 1 AssetAmount
-int 1
-==
-&&
-gtxn 1 Fee
-int 1000
-<=
-&&
-gtxn 1 AssetCloseTo
-global ZeroAddress
-==
-&&
-gtxn 1 RekeyTo
-global ZeroAddress
-==
-&&
-gtxn 2 TypeEnum
-int pay
-==
-&&
-gtxn 2 Sender
-gtxn 0 Sender
-==
-&&
-// TODO: Move to stateful SC
-// gtxn 2 Receiver
-// First index value into accounts array, seller's address. 
-// int 1
-// int {{TIQUET_ID}}
-// asset_holding_get AssetBalance
-// store 0
-// store 1
-// load 0
-// ==
-// &&
-gtxn 3 TypeEnum
-int pay
-==
-&&
-gtxn 3 Sender
-gtxn 0 Sender
-==
-&&
-gtxn 3 Receiver
-addr {{TIQUET_IO_ADDRESS}}
-==
-&&
-gtxn 3 Amount
-int {{TIQUET_IO_PROCESSING_FEE}}
-==
-&&
+finish_initial_sale:
+load 0
+bnz success
+b failure
+
+finish_resale:
+load 0
 gtxn 4 TypeEnum
 int pay
 ==
@@ -165,8 +98,8 @@ gtxn 4 Amount
 int 1000
 ==
 &&
-store 0
-b success
+bnz success
+b failure
 
 success:
 int 1
