@@ -13,7 +13,7 @@ class NetworkAccounts:
     _MNEMONICS_FILE_ENVVAR = "MNEMONICS_FILE"
 
     # Indices into accounts list.
-    
+
     _ISSUER_IDX = 0
     _BUYER_IDX = 1
     _FRAUDSTER_IDX = 2

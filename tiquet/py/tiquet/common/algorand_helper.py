@@ -58,10 +58,14 @@ class AlgorandHelper:
             store_var_val = global_var["value"][var_val_key]
             if var_type == "addr":
                 store_var_val = encoding.encode_address(base64.b64decode(store_var_val))
-                
-            if global_var["key"] == var_key and global_var["value"]["type"] == var_type_code and store_var_val == var_val:
+
+            if (
+                global_var["key"] == var_key
+                and global_var["value"]["type"] == var_type_code
+                and store_var_val == var_val
+            ):
                 return True
-            
+
         return False
 
     def has_asset(self, account, assetid, amount=1):

@@ -192,7 +192,9 @@ def initial_sale(tiquet_issuance_info, buyer, issuer_account, tiquet_price, logg
 
 
 @pytest.fixture(scope="function")
-def post_for_resale(tiquet_issuance_info, initial_sale, buyer, tiquet_resale_price, logger):
+def post_for_resale(
+    tiquet_issuance_info, initial_sale, buyer, tiquet_resale_price, logger
+):
     tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
     buyer.post_for_resale(

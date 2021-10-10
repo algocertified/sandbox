@@ -79,5 +79,8 @@ def test_resale_success(
     # TODO
     assert (
         second_buyer_balance_after - second_buyer_balance_before
-        == -1 * tiquet_resale_price - constants.TIQUET_IO_PROCESSING_FEE - 1000 - 5 * algod_params.fee
+        == -1 * tiquet_resale_price
+        - constants.TIQUET_IO_PROCESSING_FEE
+        - 1000
+        - 5 * algod_params.fee
     )
