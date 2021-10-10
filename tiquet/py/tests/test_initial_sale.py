@@ -61,7 +61,12 @@ def test_initial_sale_success(
         var_val=0,
     )
     # Check escrow address global variable is set and is assigned the correct address.
-    assert algorand_helper.has_global_var(app_id=app_id, var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME, var_type="addr", var_val=escrow_lsig.address())
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
+    )
     # Check tiquet.io account is credited processing fee.
     assert (
         tiquet_io_balance_after - tiquet_io_balance_before
@@ -146,6 +151,27 @@ def test_initial_sale_no_tiquet_payment(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet price global variable is set and is assigned the correct price.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=tiquet_price,
+    )
+    # Check tiquet for-sale flag global variable is still set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=1,
+    )
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
+    )
     # Check tiquet.io account balance is unchanged.
     assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
@@ -191,6 +217,27 @@ def test_initial_sale_insufficient_payment_amount(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet price global variable is set and is assigned the correct price.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=tiquet_price,
+    )
+    # Check tiquet for-sale flag global variable is still set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=1,
+    )
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
+    )
     # Check tiquet.io account balance is unchanged.
     assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
@@ -282,6 +329,27 @@ def test_initial_sale_payment_to_non_issuer(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet price global variable is set and is assigned the correct price.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=tiquet_price,
+    )
+    # Check tiquet for-sale flag global variable is still set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=1,
+    )
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
+    )
     # Check tiquet.io account balance is unchanged.
     assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
@@ -362,6 +430,27 @@ def test_initial_sale_no_processing_fee(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet price global variable is set and is assigned the correct price.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=tiquet_price,
+    )
+    # Check tiquet for-sale flag global variable is still set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=1,
+    )
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
+    )
     # Check tiquet.io account balance is unchanged.
     assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
@@ -453,6 +542,27 @@ def test_initial_sale_processing_fee_to_non_tiquet_io(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet price global variable is set and is assigned the correct price.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=tiquet_price,
+    )
+    # Check tiquet for-sale flag global variable is still set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=1,
+    )
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
+    )
     # Check tiquet.io account balance is unchanged.
     assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
@@ -546,6 +656,27 @@ def test_initial_sale_from_fraudster(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet price global variable is set and is assigned the correct price.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=tiquet_price,
+    )
+    # Check tiquet for-sale flag global variable is still set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=1,
+    )
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
+    )
     # Check tiquet.io account balance is unchanged.
     assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
@@ -653,6 +784,27 @@ def test_initial_sale_with_fake_escrow(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    # Check tiquet price global variable is set and is assigned the correct price.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=tiquet_price,
+    )
+    # Check tiquet for-sale flag global variable is still set to true.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=1,
+    )
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME,
+        var_type="addr",
+        var_val=escrow_lsig.address(),
+    )
     # Check tiquet.io account balance is unchanged.
     assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check issuer account balance is unchanged.
