@@ -46,23 +46,22 @@ def test_initial_sale_success(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id)
     # Check tiquet is no longer in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id, amount=0)
-    # Check tiquet price global variable is set and is assigned the correct value.
+    # Check tiquet price global variable is set and is assigned the correct price.
     assert algorand_helper.has_global_var(
         app_id=app_id,
         var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
-        var_type=2,
+        var_type="int",
         var_val=tiquet_price,
     )
     # Check tiquet for-sale flag global variable is set to false.
     assert algorand_helper.has_global_var(
         app_id=app_id,
         var_key=constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME,
-        var_type=2,
+        var_type="int",
         var_val=0,
     )
-    # Check escrow address global variable is set and is assigned the correct value.
-    # TODO: https://forum.algorand.org/t/interpreting-encoded-variables-in-application-info/4366
-    # assert algorand_helper.has_global_var(app_id=app_id, var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME, var_type=1, var_val=escrow_lsig.address())
+    # Check escrow address global variable is set and is assigned the correct address.
+    assert algorand_helper.has_global_var(app_id=app_id, var_key=constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME, var_type="addr", var_val=escrow_lsig.address())
     # Check tiquet.io account is credited processing fee.
     assert (
         tiquet_io_balance_after - tiquet_io_balance_before

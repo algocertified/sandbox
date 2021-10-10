@@ -1,6 +1,7 @@
 import base64
 import json
 
+from algosdk import encoding
 
 # Methods copied from https://github.com/algorand/docs/blob/master/examples/assets/v2/python/asset_example.py.
 class AlgorandHelper:
@@ -43,20 +44,25 @@ class AlgorandHelper:
         if "global-state" not in application_info["params"]:
             raise ValueError("App %d has no global state" % app_id)
 
-        if var_type == 1:
+        if var_type == "addr" or var_type == "str":
+            var_type_code = 1
             var_val_key = "bytes"
-        elif var_type == 2:
+        elif var_type == "int":
+            var_type_code = 2
             var_val_key = "uint"
         else:
             raise ValueError("Unrecognized variable type: " + str(var_type))
 
         var_key = str(base64.b64encode(var_key.encode("ascii")))[2:-1]
-        return any(
-            global_var["key"] == var_key
-            and global_var["value"]["type"] == var_type
-            and global_var["value"][var_val_key] == var_val
-            for global_var in application_info["params"]["global-state"]
-        )
+        for global_var in application_info["params"]["global-state"]:
+            store_var_val = global_var["value"][var_val_key]
+            if var_type == "addr":
+                store_var_val = encoding.encode_address(base64.b64decode(store_var_val))
+                
+            if global_var["key"] == var_key and global_var["value"]["type"] == var_type_code and store_var_val == var_val:
+                return True
+            
+        return False
 
     def has_asset(self, account, assetid, amount=1):
         account_info = self.client.account_info(account)
