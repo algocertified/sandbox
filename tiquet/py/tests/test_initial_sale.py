@@ -70,7 +70,7 @@ def test_initial_sale_success(
     )
     # Check issuer account is credited tiquet amount.
     assert issuer_balance_after - issuer_balance_before == tiquet_price
-    # Check buyer account is debited tiquet price and fees for 3 txns.
+    # Check buyer account is debited tiquet price and fees for 4 txns.
     assert (
         buyer_balance_after - buyer_balance_before
         == -1 * tiquet_price - constants.TIQUET_IO_PROCESSING_FEE - 4 * algod_params.fee
