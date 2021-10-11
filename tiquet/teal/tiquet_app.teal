@@ -36,6 +36,12 @@ tiquet_creation:
 byte "PRICE"
 int {{TIQUET_PRICE}}
 app_global_put
+byte "ROYALTY_NUMERATOR"
+int {{ROYALTY_NUMERATOR}}
+app_global_put
+byte "ROYALTY_DENOMINATOR"
+int {{ROYALTY_DENOMINATOR}}
+app_global_put
 byte "FOR_SALE"
 int 1
 app_global_put

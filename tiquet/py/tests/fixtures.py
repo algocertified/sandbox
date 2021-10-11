@@ -4,6 +4,7 @@ import pytest
 import uuid
 
 from algosdk.v2client import algod
+from fractions import Fraction
 from network_accounts import NetworkAccounts
 from tiquet.common.algorand_helper import AlgorandHelper
 from tiquet.tiquet_client import TiquetClient
@@ -80,6 +81,27 @@ def tiquet_resale_price():
 
 
 @pytest.fixture(scope="module")
+def issuer_tiquet_royalty():
+    # 0.1%
+    return 0.001
+
+
+@pytest.fixture(scope="module")
+def issuer_tiquet_royalty_frac(issuer_tiquet_royalty):
+    return Fraction(issuer_tiquet_royalty)
+
+
+@pytest.fixture(scope="module")
+def issuer_tiquet_royalty_numerator(issuer_tiquet_royalty_frac):
+    return issuer_tiquet_royalty_frac.numerator
+
+
+@pytest.fixture(scope="module")
+def issuer_tiquet_royalty_denominator(issuer_tiquet_royalty_frac):
+    return issuer_tiquet_royalty_frac.denominator
+
+
+@pytest.fixture(scope="module")
 def app_fpath(logger):
     return _get_envvar_value(_APP_TEAL_FPATH_ENVVAR, logger)
 
@@ -125,9 +147,11 @@ def issuer(
 
 
 @pytest.fixture(scope="function")
-def tiquet_issuance_info(issuer, tiquet_price, logger):
+def tiquet_issuance_info(issuer, tiquet_price, issuer_tiquet_royalty, logger):
     tiquet_name = uuid.uuid4()
-    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_name, tiquet_price)
+    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(
+        tiquet_name, tiquet_price, issuer_tiquet_royalty
+    )
     logger.debug("Tiquet Id: {}".format(tiquet_id))
     logger.debug("App Id: {}".format(app_id))
     logger.debug("Escrow address: {}".format(escrow_lsig.address()))

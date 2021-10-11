@@ -2,6 +2,7 @@ import pytest
 import uuid
 
 from algosdk.error import AlgodHTTPError
+
 from fixtures import *
 from tiquet.common import constants
 from tiquet.tiquet_issuer import TiquetIssuer
@@ -11,6 +12,8 @@ def test_issue_tiquet_success(
     tiquet_io_account,
     issuer_account,
     tiquet_price,
+    issuer_tiquet_royalty_numerator,
+    issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
     algodclient,
     algod_params,
@@ -27,6 +30,19 @@ def test_issue_tiquet_success(
         var_key=constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
         var_type="int",
         var_val=tiquet_price,
+    )
+    # Check tiquet royalty global variables are set and assigned the correct values.
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=issuer_tiquet_royalty_numerator,
+    )
+    assert algorand_helper.has_global_var(
+        app_id=app_id,
+        var_key=constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME,
+        var_type="int",
+        var_val=issuer_tiquet_royalty_denominator,
     )
     # Check tiquet for-sale flag global variable is set to true.
     assert algorand_helper.has_global_var(
@@ -49,6 +65,7 @@ def test_spoof_issue_tiquet_fail(
     issuer_account,
     fraudster_account,
     tiquet_price,
+    issuer_tiquet_royalty,
     app_fpath,
     clear_fpath,
     escrow_fpath,
@@ -73,6 +90,6 @@ def test_spoof_issue_tiquet_fail(
     tiquet_name = uuid.uuid4()
     # TASA creation transaction will be rejected by the network.
     with pytest.raises(AlgodHTTPError) as e:
-        issuer.issue_tiquet(tiquet_name, tiquet_price)
+        issuer.issue_tiquet(tiquet_name, tiquet_price, issuer_tiquet_royalty)
         # TODO(hv): Is this the right message we should be checking for?
         assert "transaction already in ledger" in e.message
