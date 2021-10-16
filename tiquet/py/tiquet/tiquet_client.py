@@ -75,8 +75,7 @@ class TiquetClient:
                 sender=self.pk,
                 sp=self.algod_params,
                 receiver=issuer_account,
-                # TODO: Calculate royalty fee here
-                amt=1000,
+                amt=self.get_tiquet_royalty_amount(app_id),
             )
 
         txns = [txn1, txn2, txn3, txn4]
@@ -129,3 +128,10 @@ class TiquetClient:
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
         return self.algodclient.pending_transaction_info(txid)
+
+    def get_tiquet_royalty_amount(self, app_id):
+        global_vars = self.algorand_helper.get_global_vars(app_id, [constants.TIQUET_PRICE_GLOBAL_VAR_NAME, constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME, constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME])
+        tiquet_price = global_vars[constants.TIQUET_PRICE_GLOBAL_VAR_NAME]["value"]
+        royalty_numerator = global_vars[constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME]["value"]
+        royalty_denominator = global_vars[constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME]["value"]
+        return int((royalty_numerator / royalty_denominator) * tiquet_price)

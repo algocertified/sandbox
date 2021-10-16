@@ -80,15 +80,17 @@ def test_resale_success(
     # Check seller (first buyer) account is credited tiquet amount.
     assert buyer_balance_after - buyer_balance_before == tiquet_resale_price
     # Check issuer account is credited royalty amount.
-    # TODO
-    assert issuer_balance_after - issuer_balance_before == 1000
+    royalty_amount = get_tiquet_royalty_amount(tiquet_resale_price, issuer_tiquet_royalty_numerator, issuer_tiquet_royalty_denominator)
+    assert issuer_balance_after - issuer_balance_before == royalty_amount
     # Check second buyer account is debited tiquet price, tiquet.io processing
     # fee, royalty, and fees for 5 txns.
-    # TODO
     assert (
         second_buyer_balance_after - second_buyer_balance_before
         == -1 * tiquet_resale_price
         - constants.TIQUET_IO_PROCESSING_FEE
-        - 1000
+        - royalty_amount
         - 5 * algod_params.fee
     )
+
+def get_tiquet_royalty_amount(tiquet_price, royalty_numerator, royalty_denominator):
+    return int((royalty_numerator / royalty_denominator) * tiquet_price)

@@ -1,6 +1,5 @@
 import base64
 
-from fractions import Fraction
 from tiquet.common import constants
 from tiquet.common.algorand_helper import AlgorandHelper
 from algosdk import encoding
@@ -47,9 +46,9 @@ class TiquetIssuer:
         self.tiquet_io_account = tiquet_io_account
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
-    def issue_tiquet(self, name, price, royalty):
+    def issue_tiquet(self, name, price, royalty_frac):
         tiquet_id = self._create_tasa(name)
-        app_id = self._deploy_tiquet_app(tiquet_id, price, royalty)
+        app_id = self._deploy_tiquet_app(tiquet_id, price, royalty_frac)
         escrow_lsig = self._deploy_tiquet_escrow(app_id, tiquet_id)
         escrow_address = escrow_lsig.address()
         self._set_tiquet_clawback(tiquet_id, escrow_address)
@@ -82,9 +81,7 @@ class TiquetIssuer:
 
         return tasa_id
 
-    def _deploy_tiquet_app(self, tasa_id, price, royalty):
-        royalty_frac = Fraction(royalty)
-
+    def _deploy_tiquet_app(self, tasa_id, price, royalty_frac):
         var_assigns = {
             "TIQUET_PRICE": price,
             "TIQUET_ID": tasa_id,

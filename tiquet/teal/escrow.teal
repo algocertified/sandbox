@@ -93,11 +93,6 @@ gtxn 4 Receiver
 addr {{ISSUER_ADDRESS}}
 ==
 &&
-gtxn 4 Amount
-// TODO: Calculate royalty fee here
-int 1000
-==
-&&
 bnz success
 b failure
 

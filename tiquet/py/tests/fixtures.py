@@ -81,14 +81,9 @@ def tiquet_resale_price():
 
 
 @pytest.fixture(scope="module")
-def issuer_tiquet_royalty():
+def issuer_tiquet_royalty_frac():
     # 0.1%
-    return 0.001
-
-
-@pytest.fixture(scope="module")
-def issuer_tiquet_royalty_frac(issuer_tiquet_royalty):
-    return Fraction(issuer_tiquet_royalty)
+    return Fraction(1, 1000)
 
 
 @pytest.fixture(scope="module")
@@ -147,10 +142,10 @@ def issuer(
 
 
 @pytest.fixture(scope="function")
-def tiquet_issuance_info(issuer, tiquet_price, issuer_tiquet_royalty, logger):
+def tiquet_issuance_info(issuer, tiquet_price, issuer_tiquet_royalty_frac, logger):
     tiquet_name = uuid.uuid4()
     tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(
-        tiquet_name, tiquet_price, issuer_tiquet_royalty
+        tiquet_name, tiquet_price, issuer_tiquet_royalty_frac
     )
     logger.debug("Tiquet Id: {}".format(tiquet_id))
     logger.debug("App Id: {}".format(app_id))

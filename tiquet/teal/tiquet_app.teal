@@ -158,6 +158,17 @@ gtxn 4 TypeEnum
 int pay
 ==
 &&
+byte "PRICE"
+app_global_get
+byte "ROYALTY_NUMERATOR"
+app_global_get
+*
+byte "ROYALTY_DENOMINATOR"
+app_global_get
+/
+gtxn 4 Amount
+==
+&&
 store 0
 b finish_sale
 
