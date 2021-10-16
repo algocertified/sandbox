@@ -39,34 +39,38 @@ class AlgorandHelper:
         account_info = self.client.account_info(account)
         return any(app["id"] == app_id for app in account_info["created-apps"])
 
-    def has_global_var(self, app_id, var_key, var_type, var_val):
+    def get_global_vars(self, app_id, global_var_names):
         application_info = self.client.application_info(app_id)
         if "global-state" not in application_info["params"]:
             raise ValueError("App %d has no global state" % app_id)
 
-        if var_type == "addr" or var_type == "str":
-            var_type_code = 1
-            var_val_key = "bytes"
-        elif var_type == "int":
-            var_type_code = 2
-            var_val_key = "uint"
-        else:
-            raise ValueError("Unrecognized variable type: " + str(var_type))
+        var_keys = {}
+        for var_name in global_var_names:
+            key = str(base64.b64encode(var_name.encode("ascii")))[2:-1]
+            var_keys[key] = var_name
 
-        var_key = str(base64.b64encode(var_key.encode("ascii")))[2:-1]
+        out_global_vars = {}
         for global_var in application_info["params"]["global-state"]:
-            store_var_val = global_var["value"][var_val_key]
-            if var_type == "addr":
-                store_var_val = encoding.encode_address(base64.b64decode(store_var_val))
+            if global_var["key"] in var_keys:
+                var_name = var_keys[global_var["key"]]
+                out_global_vars[var_name] = {}
 
-            if (
-                global_var["key"] == var_key
-                and global_var["value"]["type"] == var_type_code
-                and store_var_val == var_val
-            ):
-                return True
+                if global_var["value"]["type"] == 1:
+                    out_global_vars[var_name]["value"] = global_var["value"]["bytes"]
+                    addr_value = encoding.encode_address(
+                        base64.b64decode(out_global_vars[var_name]["value"])
+                    )
+                    if encoding.is_valid_address(addr_value):
+                        out_global_vars[var_name]["value"] = addr_value
+                elif global_var["value"]["type"] == 2:
+                    out_global_vars[var_name]["value"] = global_var["value"]["uint"]
+                else:
+                    raise ValueError(
+                        "Stored global variable %s has unrecognized type: %s"
+                        % (var_name, str(global_var["value"]["type"]))
+                    )
 
-        return False
+        return out_global_vars
 
     def has_asset(self, account, assetid, amount=1):
         account_info = self.client.account_info(account)
