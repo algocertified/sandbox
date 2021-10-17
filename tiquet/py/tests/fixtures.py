@@ -157,12 +157,10 @@ def tiquet_issuance_info(issuer, tiquet_price, issuer_tiquet_royalty_frac, logge
 def buyer(
     tiquet_io_account,
     buyer_account,
-    tiquet_issuance_info,
     algodclient,
     algod_params,
     logger,
 ):
-    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
     return TiquetClient(
         pk=buyer_account["pk"],
         sk=buyer_account["sk"],
@@ -170,7 +168,6 @@ def buyer(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
-        escrow_lsig=escrow_lsig,
         tiquet_io_account=tiquet_io_account["pk"],
     )
 
@@ -184,7 +181,6 @@ def second_buyer(
     algod_params,
     logger,
 ):
-    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
     return TiquetClient(
         pk=second_buyer_account["pk"],
         sk=second_buyer_account["sk"],
@@ -192,7 +188,6 @@ def second_buyer(
         algodclient=algodclient,
         algod_params=algod_params,
         logger=logger,
-        escrow_lsig=escrow_lsig,
         tiquet_io_account=tiquet_io_account["pk"],
     )
 
@@ -204,6 +199,7 @@ def initial_sale(tiquet_issuance_info, buyer, issuer_account, tiquet_price, logg
     buyer.buy_tiquet(
         tiquet_id=tiquet_id,
         app_id=app_id,
+        escrow_lsig=escrow_lsig,
         issuer_account=issuer_account["pk"],
         seller_account=issuer_account["pk"],
         amount=tiquet_price,

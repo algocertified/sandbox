@@ -16,7 +16,6 @@ class TiquetClient:
         algodclient,
         algod_params,
         logger,
-        escrow_lsig,
         tiquet_io_account,
     ):
         self.pk = pk
@@ -25,11 +24,10 @@ class TiquetClient:
         self.algodclient = algodclient
         self.algod_params = algod_params
         self.logger = logger
-        self.escrow_lsig = escrow_lsig
         self.tiquet_io_account = tiquet_io_account
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
-    def buy_tiquet(self, tiquet_id, app_id, issuer_account, seller_account, amount):
+    def buy_tiquet(self, tiquet_id, app_id, escrow_lsig, issuer_account, seller_account, amount):
         self.tiquet_opt_in(tiquet_id)
 
         is_resale = issuer_account != seller_account
@@ -45,7 +43,7 @@ class TiquetClient:
 
         # Tiquet transfer to buyer.
         txn2 = transaction.AssetTransferTxn(
-            sender=self.escrow_lsig.address(),
+            sender=escrow_lsig.address(),
             sp=self.algod_params,
             receiver=self.pk,
             amt=1,
@@ -91,7 +89,7 @@ class TiquetClient:
             txn5.group = gid
 
         stxn1 = txn1.sign(self.sk)
-        stxn2 = transaction.LogicSigTransaction(txn2, self.escrow_lsig)
+        stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
         assert stxn2.verify()
         stxn3 = txn3.sign(self.sk)
         stxn4 = txn4.sign(self.sk)

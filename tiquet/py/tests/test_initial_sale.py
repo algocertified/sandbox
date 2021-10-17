@@ -35,6 +35,7 @@ def test_initial_sale_success(
     buyer.buy_tiquet(
         tiquet_id=tiquet_id,
         app_id=app_id,
+        escrow_lsig=escrow_lsig,
         issuer_account=issuer_account["pk"],
         seller_account=issuer_account["pk"],
         amount=tiquet_price,
@@ -219,6 +220,7 @@ def test_initial_sale_insufficient_payment_amount(
         buyer.buy_tiquet(
             tiquet_id=tiquet_id,
             app_id=app_id,
+            escrow_lsig=escrow_lsig,
             issuer_account=issuer_account["pk"],
             seller_account=issuer_account["pk"],
             amount=tiquet_price - 1,

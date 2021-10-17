@@ -55,7 +55,7 @@ def test_spoof_issue_tiquet_fail(
     issuer_account,
     fraudster_account,
     tiquet_price,
-    issuer_tiquet_royalty,
+    issuer_tiquet_royalty_frac,
     app_fpath,
     clear_fpath,
     escrow_fpath,
@@ -80,6 +80,6 @@ def test_spoof_issue_tiquet_fail(
     tiquet_name = uuid.uuid4()
     # TASA creation transaction will be rejected by the network.
     with pytest.raises(AlgodHTTPError) as e:
-        issuer.issue_tiquet(tiquet_name, tiquet_price, issuer_tiquet_royalty)
+        issuer.issue_tiquet(tiquet_name, tiquet_price, issuer_tiquet_royalty_frac)
         # TODO(hv): Is this the right message we should be checking for?
         assert "transaction already in ledger" in e.message
