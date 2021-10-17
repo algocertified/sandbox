@@ -37,6 +37,7 @@ def test_resale_success(
     second_buyer.buy_tiquet(
         tiquet_id=tiquet_id,
         app_id=app_id,
+        escrow_lsig=escrow_lsig,
         issuer_account=issuer_account["pk"],
         seller_account=buyer_account["pk"],
         amount=tiquet_resale_price,
@@ -122,6 +123,7 @@ def test_resale_before_post(
         second_buyer.buy_tiquet(
             tiquet_id=tiquet_id,
             app_id=app_id,
+            escrow_lsig=escrow_lsig,
             issuer_account=issuer_account["pk"],
             seller_account=buyer_account["pk"],
             amount=tiquet_price,
