@@ -2,7 +2,7 @@
 
 global GroupSize
 int 4
-==
+>=
 gtxn 0 TypeEnum
 int appl
 ==
@@ -16,7 +16,7 @@ int axfer
 ==
 &&
 gtxn 1 AssetReceiver
-gtxn 2 Sender
+gtxn 0 Sender
 ==
 &&
 gtxn 1 XferAsset
@@ -47,10 +47,6 @@ gtxn 2 Sender
 gtxn 0 Sender
 ==
 &&
-gtxn 2 Receiver
-addr {{ISSUER_ADDRESS}}
-==
-&&
 gtxn 3 TypeEnum
 int pay
 ==
@@ -67,3 +63,47 @@ gtxn 3 Amount
 int {{TIQUET_IO_PROCESSING_FEE}}
 ==
 &&
+store 0
+global GroupSize
+int 4
+==
+bnz finish_initial_sale
+global GroupSize
+int 5
+==
+bnz finish_resale
+b failure
+
+finish_initial_sale:
+load 0
+bnz success
+b failure
+
+finish_resale:
+load 0
+gtxn 4 TypeEnum
+int pay
+==
+&&
+gtxn 4 Sender
+gtxn 0 Sender
+==
+&&
+gtxn 4 Receiver
+addr {{ISSUER_ADDRESS}}
+==
+&&
+bnz success
+b failure
+
+success:
+int 1
+return
+b end_escrow
+
+failure:
+int 0
+return
+b end_escrow
+
+end_escrow:

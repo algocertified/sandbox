@@ -32,12 +32,14 @@ class TiquetClient:
     def buy_tiquet(self, tiquet_id, app_id, issuer_account, seller_account, amount):
         self.tiquet_opt_in(tiquet_id)
 
+        is_resale = issuer_account != seller_account
+
         # Application call to execute sale.
         txn1 = transaction.ApplicationNoOpTxn(
             sender=self.pk,
             sp=self.algod_params,
             index=app_id,
-            accounts=[issuer_account],
+            accounts=[issuer_account, seller_account],
             foreign_assets=[tiquet_id],
         )
 
@@ -67,19 +69,38 @@ class TiquetClient:
             amt=constants.TIQUET_IO_PROCESSING_FEE,
         )
 
-        gid = transaction.calculate_group_id([txn1, txn2, txn3, txn4])
+        if is_resale:
+            # Royalty fee to issuer.
+            txn5 = transaction.PaymentTxn(
+                sender=self.pk,
+                sp=self.algod_params,
+                receiver=issuer_account,
+                amt=self.get_tiquet_royalty_amount(app_id),
+            )
+
+        txns = [txn1, txn2, txn3, txn4]
+        if is_resale:
+            txns.append(txn5)
+
+        gid = transaction.calculate_group_id(txns)
         txn1.group = gid
         txn2.group = gid
         txn3.group = gid
         txn4.group = gid
+        if is_resale:
+            txn5.group = gid
 
         stxn1 = txn1.sign(self.sk)
         stxn2 = transaction.LogicSigTransaction(txn2, self.escrow_lsig)
         assert stxn2.verify()
         stxn3 = txn3.sign(self.sk)
         stxn4 = txn4.sign(self.sk)
+        stxns = [stxn1, stxn2, stxn3, stxn4]
+        if is_resale:
+            stxn5 = txn5.sign(self.sk)
+            stxns.append(stxn5)
 
-        txid = self.algodclient.send_transactions([stxn1, stxn2, stxn3, stxn4])
+        txid = self.algodclient.send_transactions(stxns)
 
         self.algorand_helper.wait_for_confirmation(txid)
 
@@ -107,3 +128,10 @@ class TiquetClient:
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
         return self.algodclient.pending_transaction_info(txid)
+
+    def get_tiquet_royalty_amount(self, app_id):
+        global_vars = self.algorand_helper.get_global_vars(app_id, [constants.TIQUET_PRICE_GLOBAL_VAR_NAME, constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME, constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME])
+        tiquet_price = global_vars[constants.TIQUET_PRICE_GLOBAL_VAR_NAME]["value"]
+        royalty_numerator = global_vars[constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME]["value"]
+        royalty_denominator = global_vars[constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME]["value"]
+        return int((royalty_numerator / royalty_denominator) * tiquet_price)

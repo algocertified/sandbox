@@ -4,6 +4,7 @@ import pytest
 import uuid
 
 from algosdk.v2client import algod
+from fractions import Fraction
 from network_accounts import NetworkAccounts
 from tiquet.common.algorand_helper import AlgorandHelper
 from tiquet.tiquet_client import TiquetClient
@@ -56,6 +57,13 @@ def buyer_account(accounts, logger):
 
 
 @pytest.fixture(scope="module")
+def second_buyer_account(accounts, logger):
+    second_buyer_account = accounts.get_second_buyer_account()
+    logger.debug("Second Buyer address: {}".format(second_buyer_account["pk"]))
+    return second_buyer_account
+
+
+@pytest.fixture(scope="module")
 def fraudster_account(accounts, logger):
     fraudster_account = accounts.get_fraudster_account()
     logger.debug("Fraudster address: {}".format(fraudster_account["pk"]))
@@ -70,6 +78,22 @@ def tiquet_price():
 @pytest.fixture(scope="module")
 def tiquet_resale_price():
     return 200000000000
+
+
+@pytest.fixture(scope="module")
+def issuer_tiquet_royalty_frac():
+    # 0.1%
+    return Fraction(1, 1000)
+
+
+@pytest.fixture(scope="module")
+def issuer_tiquet_royalty_numerator(issuer_tiquet_royalty_frac):
+    return issuer_tiquet_royalty_frac.numerator
+
+
+@pytest.fixture(scope="module")
+def issuer_tiquet_royalty_denominator(issuer_tiquet_royalty_frac):
+    return issuer_tiquet_royalty_frac.denominator
 
 
 @pytest.fixture(scope="module")
@@ -118,9 +142,11 @@ def issuer(
 
 
 @pytest.fixture(scope="function")
-def tiquet_issuance_info(issuer, tiquet_price, logger):
+def tiquet_issuance_info(issuer, tiquet_price, issuer_tiquet_royalty_frac, logger):
     tiquet_name = uuid.uuid4()
-    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(tiquet_name, tiquet_price)
+    tiquet_id, app_id, escrow_lsig = issuer.issue_tiquet(
+        tiquet_name, tiquet_price, issuer_tiquet_royalty_frac
+    )
     logger.debug("Tiquet Id: {}".format(tiquet_id))
     logger.debug("App Id: {}".format(app_id))
     logger.debug("Escrow address: {}".format(escrow_lsig.address()))
@@ -150,6 +176,28 @@ def buyer(
 
 
 @pytest.fixture(scope="function")
+def second_buyer(
+    tiquet_io_account,
+    second_buyer_account,
+    tiquet_issuance_info,
+    algodclient,
+    algod_params,
+    logger,
+):
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
+    return TiquetClient(
+        pk=second_buyer_account["pk"],
+        sk=second_buyer_account["sk"],
+        mnemonic=second_buyer_account["mnemonic"],
+        algodclient=algodclient,
+        algod_params=algod_params,
+        logger=logger,
+        escrow_lsig=escrow_lsig,
+        tiquet_io_account=tiquet_io_account["pk"],
+    )
+
+
+@pytest.fixture(scope="function")
 def initial_sale(tiquet_issuance_info, buyer, issuer_account, tiquet_price, logger):
     tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
@@ -159,6 +207,19 @@ def initial_sale(tiquet_issuance_info, buyer, issuer_account, tiquet_price, logg
         issuer_account=issuer_account["pk"],
         seller_account=issuer_account["pk"],
         amount=tiquet_price,
+    )
+
+
+@pytest.fixture(scope="function")
+def post_for_resale(
+    tiquet_issuance_info, initial_sale, buyer, tiquet_resale_price, logger
+):
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
+
+    buyer.post_for_resale(
+        tiquet_id=tiquet_id,
+        app_id=app_id,
+        tiquet_price=tiquet_resale_price,
     )
 
 

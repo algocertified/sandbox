@@ -46,9 +46,9 @@ class TiquetIssuer:
         self.tiquet_io_account = tiquet_io_account
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
-    def issue_tiquet(self, name, price):
+    def issue_tiquet(self, name, price, royalty_frac):
         tiquet_id = self._create_tasa(name)
-        app_id = self._deploy_tiquet_app(tiquet_id, price)
+        app_id = self._deploy_tiquet_app(tiquet_id, price, royalty_frac)
         escrow_lsig = self._deploy_tiquet_escrow(app_id, tiquet_id)
         escrow_address = escrow_lsig.address()
         self._set_tiquet_clawback(tiquet_id, escrow_address)
@@ -81,18 +81,20 @@ class TiquetIssuer:
 
         return tasa_id
 
-    def _deploy_tiquet_app(self, tasa_id, price):
+    def _deploy_tiquet_app(self, tasa_id, price, royalty_frac):
         var_assigns = {
             "TIQUET_PRICE": price,
             "TIQUET_ID": tasa_id,
             "ISSUER_ADDRESS": self.pk,
+            "ROYALTY_NUMERATOR": royalty_frac.numerator,
+            "ROYALTY_DENOMINATOR": royalty_frac.denominator,
         }
         app_prog = self._get_prog(self.app_fpath, var_assigns=var_assigns)
         clear_prog = self._get_prog(self.clear_fpath)
 
         local_ints = 0
         local_bytes = 0
-        global_ints = 2
+        global_ints = 4
         global_bytes = 1
         global_schema = StateSchema(global_ints, global_bytes)
         local_schema = StateSchema(local_ints, local_bytes)

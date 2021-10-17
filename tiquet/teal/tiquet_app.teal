@@ -36,6 +36,12 @@ tiquet_creation:
 byte "PRICE"
 int {{TIQUET_PRICE}}
 app_global_put
+byte "ROYALTY_NUMERATOR"
+int {{ROYALTY_NUMERATOR}}
+app_global_put
+byte "ROYALTY_DENOMINATOR"
+int {{ROYALTY_DENOMINATOR}}
+app_global_put
 byte "FOR_SALE"
 int 1
 app_global_put
@@ -79,23 +85,7 @@ txn NumAppArgs
 int 1
 ==
 bnz store_escrow_address
-addr {{ISSUER_ADDRESS}}
-int {{TIQUET_ID}}
-asset_holding_get AssetBalance
-// Go to initial sale journey if the issuer own's the TASA.
-store 0
-store 1
-load 0
-bnz initial_sale
-// 0th-index value into accounts array, i.e. caller's address. 
-int 0
-int {{TIQUET_ID}}
-asset_holding_get AssetBalance
-// Otherwise, go to resale journey if the caller own's the TASA.
-store 0
-store 1
-load 0
-bnz resale
+b sale
 // Fail otherwise.
 int 0
 return
@@ -113,11 +103,15 @@ b end_tiquet_app
 // Initial Sale  //
 ///////////////////
 
-initial_sale:
-
+sale:
+byte "FOR_SALE"
+app_global_get
+int 0
+>
 global GroupSize
 int 4
-==
+>=
+&&
 gtxn 0 TypeEnum
 int appl
 ==
@@ -135,6 +129,13 @@ gtxn 2 TypeEnum
 int pay
 ==
 &&
+gtxn 2 Receiver
+int {{TIQUET_ID}}
+asset_holding_get AssetBalance
+store 0
+store 1
+load 0
+&&
 byte "PRICE"
 app_global_get
 gtxn 2 Amount
@@ -144,6 +145,39 @@ gtxn 3 TypeEnum
 int pay
 ==
 &&
+store 0
+global GroupSize
+int 4
+==
+bnz finish_sale
+global GroupSize
+int 5
+==
+bnz finish_resale
+b failure
+
+finish_resale:
+load 0
+gtxn 4 TypeEnum
+int pay
+==
+&&
+byte "PRICE"
+app_global_get
+byte "ROYALTY_NUMERATOR"
+app_global_get
+*
+byte "ROYALTY_DENOMINATOR"
+app_global_get
+/
+gtxn 4 Amount
+==
+&&
+store 0
+b finish_sale
+
+finish_sale:
+load 0
 byte "FOR_SALE"
 int 0
 app_global_put
@@ -172,15 +206,6 @@ txna ApplicationArgs 1
 btoi
 app_global_put
 b success
-
-////////////
-// Resale //
-////////////
-
-resale:
-int 1
-return
-b end_tiquet_app
 
 /////////////////////
 // Application End //
