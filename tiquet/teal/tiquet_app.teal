@@ -104,10 +104,14 @@ b end_tiquet_app
 ///////////////////
 
 sale:
-
+byte "FOR_SALE"
+app_global_get
+int 0
+>
 global GroupSize
 int 4
 >=
+&&
 gtxn 0 TypeEnum
 int appl
 ==
