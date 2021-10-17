@@ -82,6 +82,8 @@ def test_resale_success(
     # Check issuer account is credited royalty amount.
     royalty_amount = get_tiquet_royalty_amount(tiquet_resale_price, issuer_tiquet_royalty_numerator, issuer_tiquet_royalty_denominator)
     assert issuer_balance_after - issuer_balance_before == royalty_amount
+    # Check tiquet.io account is credited processing fee.
+    assert tiquet_io_balance_after - tiquet_io_balance_before == constants.TIQUET_IO_PROCESSING_FEE
     # Check second buyer account is debited tiquet price, tiquet.io processing
     # fee, royalty, and fees for 5 txns.
     assert (
@@ -165,6 +167,8 @@ def test_resale_before_post(
     assert buyer_balance_after == buyer_balance_before
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
+    # Check tiquet.io account balance is unchanged.
+    assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check second buyer account is debited fees for 1 txn.
     assert (
         second_buyer_balance_after - second_buyer_balance_before
@@ -248,6 +252,8 @@ def test_seller_tiquet_transfer(
     assert buyer_balance_after == buyer_balance_before
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
+    # Check tiquet.io account balance is unchanged.
+    assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check second buyer account balance is unchanged.
     assert second_buyer_balance_after == second_buyer_balance_before
 
@@ -328,6 +334,8 @@ def test_seller_tiquet_transfer_through_escrow(
     assert buyer_balance_after == buyer_balance_before
     # Check issuer account balance is unchanged.
     assert issuer_balance_after == issuer_balance_before
+    # Check tiquet.io account balance is unchanged.
+    assert tiquet_io_balance_after == tiquet_io_balance_before
     # Check second buyer account balance is unchanged.
     assert second_buyer_balance_after == second_buyer_balance_before
 
