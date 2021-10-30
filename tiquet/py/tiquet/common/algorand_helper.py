@@ -9,6 +9,14 @@ class AlgorandHelper:
         self.client = algodclient
         self.logger = logger
 
+    def get_prog(self, fpath, var_assigns={}):
+        with open(fpath, "rt") as f:
+            source = f.read()
+            for var, value in var_assigns.items():
+                source = source.replace("{{%s}}" % var, str(value))
+            self.logger.debug("Final source for %s:\n%s" % (fpath, source))
+            return base64.b64decode(self.client.compile(source)["result"])
+
     # Utility function to send a transaction and wait until the transaction is confirmed.
     def send_and_wait_for_txn(self, stxn):
         txid = self.client.send_transaction(stxn)

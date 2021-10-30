@@ -145,6 +145,21 @@ gtxn 3 TypeEnum
 int pay
 ==
 &&
+byte "PRICE"
+app_global_get
+int {{CONSTANTS_APP_ID}}
+byte "PROCESSING_FEE_NUMERATOR"
+app_global_get_ex
+pop
+*
+int {{CONSTANTS_APP_ID}}
+byte "PROCESSING_FEE_DENOMINATOR"
+app_global_get_ex
+pop
+/
+gtxn 3 Amount
+==
+&&
 store 0
 global GroupSize
 int 4

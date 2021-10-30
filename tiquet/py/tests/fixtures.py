@@ -7,6 +7,7 @@ from algosdk.v2client import algod
 from fractions import Fraction
 from network_accounts import NetworkAccounts
 from tiquet.common.algorand_helper import AlgorandHelper
+from tiquet.administrator_client import AdministratorClient
 from tiquet.tiquet_client import TiquetClient
 from tiquet.tiquet_issuer import TiquetIssuer
 
@@ -17,6 +18,7 @@ logging.basicConfig(format="%(asctime)s %(message)s")
 # Environment variables for algod client.
 _ALGOD_ADDRESS_ENVVAR = "ALGOD_ADDR"
 _ALGOD_TOKEN_ENVVAR = "ALGOD_TOKEN"
+_CONSTANTS_APP_TEAL_FPATH_ENVVAR = "CONSTANTS_APP_FPATH"
 _APP_TEAL_FPATH_ENVVAR = "APP_FPATH"
 _CLEAR_TEAL_FPATH_ENVVAR = "CLEAR_FPATH"
 _ESCROW_TEAL_FPATH_ENVVAR = "ESCROW_FPATH"
@@ -81,9 +83,25 @@ def tiquet_resale_price():
 
 
 @pytest.fixture(scope="module")
-def issuer_tiquet_royalty_frac():
+def tiquet_processing_fee_frac():
     # 0.1%
     return Fraction(1, 1000)
+
+
+@pytest.fixture(scope="module")
+def tiquet_processing_fee_numerator(tiquet_processing_fee_frac):
+    return tiquet_processing_fee_frac.numerator
+
+
+@pytest.fixture(scope="module")
+def tiquet_processing_fee_denominator(tiquet_processing_fee_frac):
+    return tiquet_processing_fee_frac.denominator
+
+
+@pytest.fixture(scope="module")
+def issuer_tiquet_royalty_frac():
+    # 0.2%
+    return Fraction(1, 500)
 
 
 @pytest.fixture(scope="module")
@@ -94,6 +112,11 @@ def issuer_tiquet_royalty_numerator(issuer_tiquet_royalty_frac):
 @pytest.fixture(scope="module")
 def issuer_tiquet_royalty_denominator(issuer_tiquet_royalty_frac):
     return issuer_tiquet_royalty_frac.denominator
+
+
+@pytest.fixture(scope="module")
+def constants_app_fpath(logger):
+    return _get_envvar_value(_CONSTANTS_APP_TEAL_FPATH_ENVVAR, logger)
 
 
 @pytest.fixture(scope="module")
@@ -117,9 +140,38 @@ def success_teal_fpath(logger):
 
 
 @pytest.fixture(scope="module")
+def administrator(
+    tiquet_io_account,
+    constants_app_fpath,
+    clear_fpath,
+    algodclient,
+    algod_params,
+    logger,
+):
+    client = AdministratorClient(
+        pk=tiquet_io_account["pk"],
+        sk=tiquet_io_account["sk"],
+        mnemonic=tiquet_io_account["mnemonic"],
+        app_fpath=constants_app_fpath,
+        clear_fpath=clear_fpath,
+        algodclient=algodclient,
+        algod_params=algod_params,
+        logger=logger,
+    )
+    client.deploy_constants_app()
+    return client
+
+
+@pytest.fixture(scope="module")
+def constants_app_id(administrator):
+    return administrator.constants_app_id
+
+
+@pytest.fixture(scope="module")
 def issuer(
     tiquet_io_account,
     issuer_account,
+    constants_app_id,
     app_fpath,
     clear_fpath,
     escrow_fpath,
@@ -138,6 +190,7 @@ def issuer(
         algod_params=algod_params,
         logger=logger,
         tiquet_io_account=tiquet_io_account["pk"],
+        constants_app_id=constants_app_id,
     )
 
 
@@ -157,6 +210,7 @@ def tiquet_issuance_info(issuer, tiquet_price, issuer_tiquet_royalty_frac, logge
 def buyer(
     tiquet_io_account,
     buyer_account,
+    constants_app_id,
     algodclient,
     algod_params,
     logger,
@@ -169,6 +223,7 @@ def buyer(
         algod_params=algod_params,
         logger=logger,
         tiquet_io_account=tiquet_io_account["pk"],
+        constants_app_id=constants_app_id,
     )
 
 
@@ -176,6 +231,7 @@ def buyer(
 def second_buyer(
     tiquet_io_account,
     second_buyer_account,
+    constants_app_id,
     tiquet_issuance_info,
     algodclient,
     algod_params,
@@ -189,6 +245,7 @@ def second_buyer(
         algod_params=algod_params,
         logger=logger,
         tiquet_io_account=tiquet_io_account["pk"],
+        constants_app_id=constants_app_id,
     )
 
 

@@ -59,10 +59,6 @@ gtxn 3 Receiver
 addr {{TIQUET_IO_ADDRESS}}
 ==
 &&
-gtxn 3 Amount
-int {{TIQUET_IO_PROCESSING_FEE}}
-==
-&&
 store 0
 global GroupSize
 int 4
