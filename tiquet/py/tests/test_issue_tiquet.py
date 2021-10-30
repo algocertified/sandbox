@@ -12,8 +12,11 @@ def test_issue_tiquet_success(
     tiquet_io_account,
     issuer_account,
     tiquet_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
+    administrator,
     tiquet_issuance_info,
     algodclient,
     algod_params,
@@ -25,7 +28,18 @@ def test_issue_tiquet_success(
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
     assert algorand_helper.created_app(issuer_account["pk"], app_id)
 
-    expected_global_vars = {
+    expected_constants = {
+        # Check tiquet.io processing fee global variables are set and assigned
+        # the correct values.
+        constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME: {"value": tiquet_processing_fee_numerator},
+        constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME: {"value": tiquet_processing_fee_denominator},
+    }
+    assert (
+        algorand_helper.get_global_vars(administrator.constants_app_id, expected_constants.keys())
+        == expected_constants
+    )
+
+    expected_app_global_vars = {
         # Check tiquet price global variable is set and is assigned the correct
         # price.
         constants.TIQUET_PRICE_GLOBAL_VAR_NAME: {"value": tiquet_price},
@@ -46,8 +60,8 @@ def test_issue_tiquet_success(
         },
     }
     assert (
-        algorand_helper.get_global_vars(app_id, expected_global_vars.keys())
-        == expected_global_vars
+        algorand_helper.get_global_vars(app_id, expected_app_global_vars.keys())
+        == expected_app_global_vars
     )
 
 def test_spoof_issue_tiquet_fail(
@@ -56,6 +70,7 @@ def test_spoof_issue_tiquet_fail(
     fraudster_account,
     tiquet_price,
     issuer_tiquet_royalty_frac,
+    administrator,
     app_fpath,
     clear_fpath,
     escrow_fpath,
@@ -75,6 +90,7 @@ def test_spoof_issue_tiquet_fail(
         algod_params=algod_params,
         logger=logger,
         tiquet_io_account=tiquet_io_account["pk"],
+        constants_app_id=administrator.constants_app_id,
     )
 
     tiquet_name = uuid.uuid4()

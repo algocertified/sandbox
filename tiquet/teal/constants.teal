@@ -1,0 +1,42 @@
+#pragma version 4
+
+//////////////////////////
+// Application Creation //
+//////////////////////////
+
+// Check txn is for application creation.
+txn ApplicationID
+int 0
+== 
+bnz create_constants
+b failure
+
+//////////////////////
+// Create Constants //
+//////////////////////
+
+create_constants:
+// tiquet.io processing fee percentage set to 0.01%.
+byte "PROCESSING_FEE_NUMERATOR"
+int 1
+app_global_put
+byte "PROCESSING_FEE_DENOMINATOR"
+int 1000
+app_global_put
+b success
+
+/////////////////////
+// Application End //
+/////////////////////
+
+success:
+int 1
+return
+b end_app
+
+failure:
+int 0
+return
+b end_app
+
+end_app:

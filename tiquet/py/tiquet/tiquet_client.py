@@ -17,6 +17,7 @@ class TiquetClient:
         algod_params,
         logger,
         tiquet_io_account,
+        constants_app_id,
     ):
         self.pk = pk
         self.sk = sk
@@ -25,12 +26,14 @@ class TiquetClient:
         self.algod_params = algod_params
         self.logger = logger
         self.tiquet_io_account = tiquet_io_account
+        self.constants_app_id = constants_app_id
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
     def buy_tiquet(self, tiquet_id, app_id, escrow_lsig, issuer_account, seller_account, amount):
         self.tiquet_opt_in(tiquet_id)
 
         is_resale = issuer_account != seller_account
+        global_vars = self._get_global_vars(app_id)
 
         # Application call to execute sale.
         txn1 = transaction.ApplicationNoOpTxn(
@@ -38,6 +41,7 @@ class TiquetClient:
             sp=self.algod_params,
             index=app_id,
             accounts=[issuer_account, seller_account],
+            foreign_apps=[self.constants_app_id],
             foreign_assets=[tiquet_id],
         )
 
@@ -64,7 +68,7 @@ class TiquetClient:
             sender=self.pk,
             sp=self.algod_params,
             receiver=self.tiquet_io_account,
-            amt=constants.TIQUET_IO_PROCESSING_FEE,
+            amt=self._get_processing_fee(global_vars),
         )
 
         if is_resale:
@@ -73,7 +77,7 @@ class TiquetClient:
                 sender=self.pk,
                 sp=self.algod_params,
                 receiver=issuer_account,
-                amt=self.get_tiquet_royalty_amount(app_id),
+                amt=self._get_tiquet_royalty_amount(global_vars),
             )
 
         txns = [txn1, txn2, txn3, txn4]
@@ -127,8 +131,19 @@ class TiquetClient:
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
         return self.algodclient.pending_transaction_info(txid)
 
-    def get_tiquet_royalty_amount(self, app_id):
+    def _get_global_vars(self, app_id):
         global_vars = self.algorand_helper.get_global_vars(app_id, [constants.TIQUET_PRICE_GLOBAL_VAR_NAME, constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME, constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME])
+        constant_global_vars = self.algorand_helper.get_global_vars(self.constants_app_id, [constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME, constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME])
+        global_vars.update(constant_global_vars)
+        return global_vars
+
+    def _get_processing_fee(self, global_vars):
+        tiquet_price = global_vars[constants.TIQUET_PRICE_GLOBAL_VAR_NAME]["value"]
+        processing_fee_numerator = global_vars[constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME]["value"]
+        processing_fee_denominator = global_vars[constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME]["value"]
+        return int((processing_fee_numerator / processing_fee_denominator) * tiquet_price)
+
+    def _get_tiquet_royalty_amount(self, global_vars):
         tiquet_price = global_vars[constants.TIQUET_PRICE_GLOBAL_VAR_NAME]["value"]
         royalty_numerator = global_vars[constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME]["value"]
         royalty_denominator = global_vars[constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME]["value"]

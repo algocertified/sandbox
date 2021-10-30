@@ -65,6 +65,7 @@ services:
     environment:
       ALGOD_ADDR: "http://localhost:4001"
       ALGOD_TOKEN: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      CONSTANTS_APP_FPATH: "/root/tiquet/teal/constants.teal"
       APP_FPATH: "/root/tiquet/teal/tiquet_app.teal"
       CLEAR_FPATH: "/root/tiquet/teal/clear.teal"
       ESCROW_FPATH: "/root/tiquet/teal/escrow.teal"
@@ -86,6 +87,7 @@ services:
     environment:
       ALGOD_ADDR: "https://testnet-algorand.api.purestake.io/ps2"
       ALGOD_TOKEN: "LGlsGlaSiY37Y3xKQly071AsDwS6PeP73mAaFJLF"
+      CONSTANTS_APP_FPATH: "/root/tiquet/teal/constants.teal"
       APP_FPATH: "/root/tiquet/teal/tiquet_app.teal"
       CLEAR_FPATH: "/root/tiquet/teal/clear.teal"
       ESCROW_FPATH: "/root/tiquet/teal/escrow.teal"

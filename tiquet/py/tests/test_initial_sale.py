@@ -16,6 +16,8 @@ def test_initial_sale_success(
     issuer_account,
     buyer_account,
     tiquet_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     issuer,
@@ -76,123 +78,18 @@ def test_initial_sale_success(
     )
 
     # Check tiquet.io account is credited processing fee.
+    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     assert (
         tiquet_io_balance_after - tiquet_io_balance_before
-        == constants.TIQUET_IO_PROCESSING_FEE
+        == processing_fee
     )
     # Check issuer account is credited tiquet amount.
     assert issuer_balance_after - issuer_balance_before == tiquet_price
     # Check buyer account is debited tiquet price and fees for 4 txns.
     assert (
         buyer_balance_after - buyer_balance_before
-        == -1 * tiquet_price - constants.TIQUET_IO_PROCESSING_FEE - 4 * algod_params.fee
+        == -1 * tiquet_price - processing_fee - 4 * algod_params.fee
     )
-
-
-def test_initial_sale_no_tiquet_payment(
-    tiquet_io_account,
-    issuer_account,
-    buyer_account,
-    tiquet_price,
-    issuer_tiquet_royalty_numerator,
-    issuer_tiquet_royalty_denominator,
-    issuer,
-    tiquet_issuance_info,
-    buyer,
-    algodclient,
-    algod_params,
-    algorand_helper,
-    logger,
-):
-    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
-
-    buyer.tiquet_opt_in(tiquet_id)
-
-    tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
-    issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
-    buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
-
-    # Application call to execute sale.
-    txn1 = transaction.ApplicationNoOpTxn(
-        sender=buyer_account["pk"],
-        sp=algod_params,
-        index=app_id,
-        accounts=[issuer_account["pk"]],
-        foreign_assets=[tiquet_id],
-    )
-
-    # Tiquet transfer to buyer.
-    txn2 = transaction.AssetTransferTxn(
-        sender=escrow_lsig.address(),
-        sp=algod_params,
-        receiver=buyer_account["pk"],
-        amt=1,
-        index=tiquet_id,
-        revocation_target=issuer_account["pk"],
-    )
-
-    # Processing fee to tiquet.io.
-    txn3 = transaction.PaymentTxn(
-        sender=buyer_account["pk"],
-        sp=algod_params,
-        receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
-    )
-
-    gid = transaction.calculate_group_id([txn1, txn2, txn3])
-    txn1.group = gid
-    txn2.group = gid
-    txn3.group = gid
-
-    stxn1 = txn1.sign(buyer_account["sk"])
-    stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
-    assert stxn2.verify()
-    stxn3 = txn3.sign(buyer_account["sk"])
-
-    with pytest.raises(AlgodHTTPError) as e:
-        txid = algodclient.send_transactions([stxn1, stxn2, stxn3])
-        assert "transaction rejected by ApprovalProgram" in e.message
-
-    tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
-    issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
-    buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
-
-    # Check tiquet is not in possession of buyer.
-    assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
-    # Check tiquet is still in possession of issuer.
-    assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
-    
-    expected_global_vars = {
-        # Check tiquet price global variable is set and is assigned the correct
-        # price.
-        constants.TIQUET_PRICE_GLOBAL_VAR_NAME: {"value": tiquet_price},
-        # Check tiquet royalty global variables are set and assigned the correct
-        # values.
-        constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME: {
-            "value": issuer_tiquet_royalty_numerator
-        },
-        constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME: {
-            "value": issuer_tiquet_royalty_denominator
-        },
-        # Check tiquet for-sale flag global variable is set to true.
-        constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME: {"value": 1},
-        # Check escrow address global variable is set and is assigned the
-        # correct address.
-        constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME: {
-            "value": escrow_lsig.address()
-        },
-    }
-    assert (
-        algorand_helper.get_global_vars(app_id, expected_global_vars.keys())
-        == expected_global_vars
-    )
-
-    # Check tiquet.io account balance is unchanged.
-    assert tiquet_io_balance_after == tiquet_io_balance_before
-    # Check issuer account balance is unchanged.
-    assert issuer_balance_after == issuer_balance_before
-    # Check buyer account balance is unchanged.
-    assert buyer_balance_after - buyer_balance_before == 0
 
 
 def test_initial_sale_insufficient_payment_amount(
@@ -269,12 +166,124 @@ def test_initial_sale_insufficient_payment_amount(
     assert buyer_balance_after - buyer_balance_before == -1 * algod_params.fee
 
 
+
+def test_initial_sale_no_tiquet_payment(
+    tiquet_io_account,
+    issuer_account,
+    buyer_account,
+    tiquet_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
+    issuer_tiquet_royalty_numerator,
+    issuer_tiquet_royalty_denominator,
+    issuer,
+    tiquet_issuance_info,
+    buyer,
+    algodclient,
+    algod_params,
+    algorand_helper,
+    logger,
+):
+    tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
+
+    buyer.tiquet_opt_in(tiquet_id)
+
+    tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
+    issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
+    buyer_balance_before = algorand_helper.get_amount(buyer_account["pk"])
+
+    # Application call to execute sale.
+    txn1 = transaction.ApplicationNoOpTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        index=app_id,
+        accounts=[issuer_account["pk"]],
+        foreign_assets=[tiquet_id],
+    )
+
+    # Tiquet transfer to buyer.
+    txn2 = transaction.AssetTransferTxn(
+        sender=escrow_lsig.address(),
+        sp=algod_params,
+        receiver=buyer_account["pk"],
+        amt=1,
+        index=tiquet_id,
+        revocation_target=issuer_account["pk"],
+    )
+
+    # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+    txn3 = transaction.PaymentTxn(
+        sender=buyer_account["pk"],
+        sp=algod_params,
+        receiver=tiquet_io_account["pk"],
+        amt=processing_fee,
+    )
+
+    gid = transaction.calculate_group_id([txn1, txn2, txn3])
+    txn1.group = gid
+    txn2.group = gid
+    txn3.group = gid
+
+    stxn1 = txn1.sign(buyer_account["sk"])
+    stxn2 = transaction.LogicSigTransaction(txn2, escrow_lsig)
+    assert stxn2.verify()
+    stxn3 = txn3.sign(buyer_account["sk"])
+
+    with pytest.raises(AlgodHTTPError) as e:
+        txid = algodclient.send_transactions([stxn1, stxn2, stxn3])
+        assert "transaction rejected by ApprovalProgram" in e.message
+
+    tiquet_io_balance_after = algorand_helper.get_amount(tiquet_io_account["pk"])
+    issuer_balance_after = algorand_helper.get_amount(issuer_account["pk"])
+    buyer_balance_after = algorand_helper.get_amount(buyer_account["pk"])
+
+    # Check tiquet is not in possession of buyer.
+    assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
+    # Check tiquet is still in possession of issuer.
+    assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
+    
+    expected_global_vars = {
+        # Check tiquet price global variable is set and is assigned the correct
+        # price.
+        constants.TIQUET_PRICE_GLOBAL_VAR_NAME: {"value": tiquet_price},
+        # Check tiquet royalty global variables are set and assigned the correct
+        # values.
+        constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME: {
+            "value": issuer_tiquet_royalty_numerator
+        },
+        constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME: {
+            "value": issuer_tiquet_royalty_denominator
+        },
+        # Check tiquet for-sale flag global variable is set to true.
+        constants.TIQUET_FOR_SALE_FLAG_GLOBAL_VAR_NAME: {"value": 1},
+        # Check escrow address global variable is set and is assigned the
+        # correct address.
+        constants.TIQUET_ESCROW_ADDRESS_GLOBAL_VAR_NAME: {
+            "value": escrow_lsig.address()
+        },
+    }
+    assert (
+        algorand_helper.get_global_vars(app_id, expected_global_vars.keys())
+        == expected_global_vars
+    )
+
+    # Check tiquet.io account balance is unchanged.
+    assert tiquet_io_balance_after == tiquet_io_balance_before
+    # Check issuer account balance is unchanged.
+    assert issuer_balance_after == issuer_balance_before
+    # Check buyer account balance is unchanged.
+    assert buyer_balance_after - buyer_balance_before == 0
+
+
 def test_initial_sale_payment_to_non_issuer(
     tiquet_io_account,
     issuer_account,
     buyer_account,
     fraudster_account,
     tiquet_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     issuer,
@@ -322,11 +331,12 @@ def test_initial_sale_payment_to_non_issuer(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     gid = transaction.calculate_group_id([txn1, txn2, txn3, txn4])
@@ -502,6 +512,8 @@ def test_initial_sale_processing_fee_to_non_tiquet_io(
     buyer_account,
     fraudster_account,
     tiquet_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     issuer,
@@ -549,11 +561,12 @@ def test_initial_sale_processing_fee_to_non_tiquet_io(
     )
 
     # Processing fee to fraudster.
+    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
         receiver=fraudster_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     gid = transaction.calculate_group_id([txn1, txn2, txn3, txn4])
@@ -623,6 +636,8 @@ def test_initial_sale_from_fraudster(
     buyer_account,
     fraudster_account,
     tiquet_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     issuer,
@@ -670,11 +685,12 @@ def test_initial_sale_from_fraudster(
     )
 
     # Processing fee to tiquet.io from buyer.
+    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     gid = transaction.calculate_group_id([txn1, txn2, txn3, txn4])
@@ -869,3 +885,6 @@ def test_initial_sale_with_fake_escrow(
     assert issuer_balance_after == issuer_balance_before
     # Check buyer account balance is unchanged.
     assert buyer_balance_after == buyer_balance_before
+
+def get_tiquet_processing_fee(tiquet_price, processing_fee_numerator, processing_fee_denominator):
+    return int((processing_fee_numerator / processing_fee_denominator) * tiquet_price)

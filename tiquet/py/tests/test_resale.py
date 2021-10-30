@@ -17,6 +17,8 @@ def test_resale_success(
     buyer_account,
     second_buyer_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -80,17 +82,21 @@ def test_resale_success(
 
     # Check seller (original buyer) account is credited tiquet amount.
     assert buyer_balance_after - buyer_balance_before == tiquet_resale_price
+    # Check tiquet.io account is credited processing fee.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+    assert (
+        tiquet_io_balance_after - tiquet_io_balance_before
+        == processing_fee
+    )
     # Check issuer account is credited royalty amount.
     royalty_amount = get_tiquet_royalty_amount(tiquet_resale_price, issuer_tiquet_royalty_numerator, issuer_tiquet_royalty_denominator)
     assert issuer_balance_after - issuer_balance_before == royalty_amount
-    # Check tiquet.io account is credited processing fee.
-    assert tiquet_io_balance_after - tiquet_io_balance_before == constants.TIQUET_IO_PROCESSING_FEE
     # Check second buyer account is debited tiquet price, tiquet.io processing
     # fee, royalty, and fees for 5 txns.
     assert (
         second_buyer_balance_after - second_buyer_balance_before
         == -1 * tiquet_resale_price
-        - constants.TIQUET_IO_PROCESSING_FEE
+        - processing_fee
         - royalty_amount
         - 5 * algod_params.fee
     )
@@ -430,6 +436,8 @@ def test_resale_no_tiquet_payment(
     buyer_account,
     second_buyer_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -467,11 +475,13 @@ def test_resale_no_tiquet_payment(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+
     txn3 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     # Royalty fee to issuer.
@@ -550,6 +560,8 @@ def test_resale_incorrect_tiquet_payment(
     buyer_account,
     second_buyer_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -595,11 +607,12 @@ def test_resale_incorrect_tiquet_payment(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     # Royalty fee to issuer.
@@ -681,6 +694,8 @@ def test_resale_tiquet_payment_to_nonseller(
     second_buyer_account,
     fraudster_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -727,11 +742,12 @@ def test_resale_tiquet_payment_to_nonseller(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     # Royalty fee to issuer.
@@ -815,6 +831,8 @@ def test_resale_no_royalty(
     buyer_account,
     second_buyer_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -860,11 +878,12 @@ def test_resale_no_royalty(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     gid = transaction.calculate_group_id([txn1, txn2, txn3, txn4])
@@ -934,6 +953,8 @@ def test_resale_incorrect_royalty(
     buyer_account,
     second_buyer_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -979,11 +1000,12 @@ def test_resale_incorrect_royalty(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     # Royalty fee to issuer.
@@ -1065,6 +1087,8 @@ def test_resale_royalty_to_nonseller(
     second_buyer_account,
     fraudster_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -1111,11 +1135,12 @@ def test_resale_royalty_to_nonseller(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     # Royalty fee to fraudster.
@@ -1199,6 +1224,8 @@ def test_resale_no_processing_fee(
     buyer_account,
     second_buyer_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -1319,6 +1346,8 @@ def test_resale_incorrect_processing_fee(
     buyer_account,
     second_buyer_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -1364,11 +1393,12 @@ def test_resale_incorrect_processing_fee(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=tiquet_io_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE - 1,
+        amt=processing_fee - 1,
     )
 
     # Royalty fee to fraudster.
@@ -1450,6 +1480,8 @@ def test_resale_processing_fee_to_nonseller(
     second_buyer_account,
     fraudster_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -1496,11 +1528,12 @@ def test_resale_processing_fee_to_nonseller(
     )
 
     # Processing fee to fraudster.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=fraudster_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     # Royalty fee to issuer.
@@ -1585,6 +1618,8 @@ def test_resale_from_fraudster(
     second_buyer_account,
     fraudster_account,
     tiquet_resale_price,
+    tiquet_processing_fee_numerator,
+    tiquet_processing_fee_denominator,
     issuer_tiquet_royalty_numerator,
     issuer_tiquet_royalty_denominator,
     tiquet_issuance_info,
@@ -1631,11 +1666,12 @@ def test_resale_from_fraudster(
     )
 
     # Processing fee to tiquet.io.
+    processing_fee = get_tiquet_processing_fee(tiquet_resale_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
     txn4 = transaction.PaymentTxn(
         sender=second_buyer_account["pk"],
         sp=algod_params,
         receiver=fraudster_account["pk"],
-        amt=constants.TIQUET_IO_PROCESSING_FEE,
+        amt=processing_fee,
     )
 
     # Royalty fee to issuer.
@@ -1712,6 +1748,9 @@ def test_resale_from_fraudster(
     # Check fraudster account balance is unchanged.
     assert fraudster_balance_after == fraudster_balance_before
 
+
+def get_tiquet_processing_fee(tiquet_price, processing_fee_numerator, processing_fee_denominator):
+    return int((processing_fee_numerator / processing_fee_denominator) * tiquet_price)
 
 def get_tiquet_royalty_amount(tiquet_price, royalty_numerator, royalty_denominator):
     return int((royalty_numerator / royalty_denominator) * tiquet_price)

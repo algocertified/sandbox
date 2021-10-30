@@ -1,6 +1,5 @@
 import base64
 
-from tiquet.common import constants
 from tiquet.common.algorand_helper import AlgorandHelper
 from algosdk import encoding
 from algosdk.future.transaction import (
@@ -33,6 +32,7 @@ class TiquetIssuer:
         algod_params,
         logger,
         tiquet_io_account,
+        constants_app_id,
     ):
         self.pk = pk
         self.sk = sk
@@ -44,6 +44,7 @@ class TiquetIssuer:
         self.algod_params = algod_params
         self.logger = logger
         self.tiquet_io_account = tiquet_io_account
+        self.constants_app_id = constants_app_id
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
     def issue_tiquet(self, name, price, royalty_frac):
@@ -83,14 +84,15 @@ class TiquetIssuer:
 
     def _deploy_tiquet_app(self, tasa_id, price, royalty_frac):
         var_assigns = {
+            "CONSTANTS_APP_ID": self.constants_app_id,
             "TIQUET_PRICE": price,
             "TIQUET_ID": tasa_id,
             "ISSUER_ADDRESS": self.pk,
             "ROYALTY_NUMERATOR": royalty_frac.numerator,
             "ROYALTY_DENOMINATOR": royalty_frac.denominator,
         }
-        app_prog = self._get_prog(self.app_fpath, var_assigns=var_assigns)
-        clear_prog = self._get_prog(self.clear_fpath)
+        app_prog = self.algorand_helper.get_prog(self.app_fpath, var_assigns=var_assigns)
+        clear_prog = self.algorand_helper.get_prog(self.clear_fpath)
 
         local_ints = 0
         local_bytes = 0
@@ -123,11 +125,10 @@ class TiquetIssuer:
         var_assigns = {
             "TIQUET_APP_ID": app_id,
             "TIQUET_ID": tasa_id,
-            "TIQUET_IO_PROCESSING_FEE": constants.TIQUET_IO_PROCESSING_FEE,
             "TIQUET_IO_ADDRESS": self.tiquet_io_account,
             "ISSUER_ADDRESS": self.pk,
         }
-        escrow_prog = self._get_prog(self.escrow_fpath, var_assigns=var_assigns)
+        escrow_prog = self.algorand_helper.get_prog(self.escrow_fpath, var_assigns=var_assigns)
         return LogicSigAccount(escrow_prog)
 
     def _set_tiquet_clawback(self, tiquet_id, escrow_address):
@@ -170,11 +171,3 @@ class TiquetIssuer:
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
         return self.algodclient.pending_transaction_info(txid)
-
-    def _get_prog(self, fpath, var_assigns={}):
-        with open(fpath, "rt") as f:
-            source = f.read()
-            for var, value in var_assigns.items():
-                source = source.replace("{{%s}}" % var, str(value))
-            self.logger.debug("Final source for %s:\n%s" % (fpath, source))
-            return base64.b64decode(self.algodclient.compile(source)["result"])
