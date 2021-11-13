@@ -43,6 +43,7 @@ class TiquetClient:
             accounts=[issuer_account, seller_account],
             foreign_apps=[self.constants_app_id],
             foreign_assets=[tiquet_id],
+            app_args=["SALE"],
         )
 
         # Tiquet transfer to buyer.

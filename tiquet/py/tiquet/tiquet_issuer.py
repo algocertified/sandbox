@@ -96,7 +96,8 @@ class TiquetIssuer:
 
         local_ints = 0
         local_bytes = 0
-        global_ints = 4
+        global_ints = 5
+        # global_ints = 4
         global_bytes = 1
         global_schema = StateSchema(global_ints, global_bytes)
         local_schema = StateSchema(local_ints, local_bytes)
@@ -166,7 +167,7 @@ class TiquetIssuer:
             index=app_id,
             accounts=[self.pk],
             foreign_assets=[tiquet_id],
-            app_args=[encoding.decode_address(escrow_address)],
+            app_args=["STORE_ESCROW_ADDRESS", encoding.decode_address(escrow_address)],
         )
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)
