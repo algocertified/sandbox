@@ -234,8 +234,8 @@ b success
 
 update_app:
 delete_app:
-// Only the application creator can update.
-global CreatorAddress
+// Only the tiquet issuer or tiquet.io are allowed to update.
+addr {{ISSUER_ADDRESS}}
 txn Sender
 ==
 addr {{TIQUET_IO_ADDRESS}}
