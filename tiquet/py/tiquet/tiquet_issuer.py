@@ -88,6 +88,7 @@ class TiquetIssuer:
             "TIQUET_PRICE": price,
             "TIQUET_ID": tasa_id,
             "ISSUER_ADDRESS": self.pk,
+            "TIQUET_IO_ADDRESS": self.tiquet_io_account,
             "ROYALTY_NUMERATOR": royalty_frac.numerator,
             "ROYALTY_DENOMINATOR": royalty_frac.denominator,
         }

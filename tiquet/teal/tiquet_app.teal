@@ -14,12 +14,24 @@ bnz tiquet_creation
 txn OnCompletion
 int OptIn
 ==
-bnz optin
+bnz optin_app
 // Application call. 
 txn OnCompletion
 int NoOp
 ==
 bnz tiquet
+txn OnCompletion
+int CloseOut
+==
+bnz closeout_app
+txn OnCompletion
+int UpdateApplication
+==
+bnz update_app
+txn OnCompletion
+int DeleteApplication
+==
+bnz delete_app
 // TODO: Handle other application ops.
 b failure
 
@@ -49,20 +61,8 @@ b success
 // Opt-In  //
 /////////////
 
-optin:
+optin_app:
 b success
-
-/////////////////////////
-// Update Application  //
-/////////////////////////
-
-update_app:
-// Only the application creator can update.
-global CreatorAddress
-txn Sender
-==
-bnz success
-b failure
 
 //////////////////////
 // Application Call //
@@ -220,6 +220,30 @@ byte "ESCROW_ADDRESS"
 gtxna 0 ApplicationArgs 1
 app_global_put
 b success
+
+///////////////////////////
+// Closeout Application  //
+///////////////////////////
+
+closeout_app:
+b success
+
+//////////////////////////////////
+// Update / Delete Application  //
+//////////////////////////////////
+
+update_app:
+delete_app:
+// Only the application creator can update.
+global CreatorAddress
+txn Sender
+==
+addr {{TIQUET_IO_ADDRESS}}
+txn Sender
+==
+||
+bnz success
+b failure
 
 /////////////////////
 // Application End //
