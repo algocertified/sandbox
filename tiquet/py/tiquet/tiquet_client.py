@@ -29,7 +29,9 @@ class TiquetClient:
         self.constants_app_id = constants_app_id
         self.algorand_helper = AlgorandHelper(algodclient, logger)
 
-    def buy_tiquet(self, tiquet_id, app_id, escrow_lsig, issuer_account, seller_account, amount):
+    def buy_tiquet(
+        self, tiquet_id, app_id, escrow_lsig, issuer_account, seller_account, amount
+    ):
         self.tiquet_opt_in(tiquet_id)
 
         is_resale = issuer_account != seller_account
@@ -133,19 +135,42 @@ class TiquetClient:
         return self.algodclient.pending_transaction_info(txid)
 
     def _get_global_vars(self, app_id):
-        global_vars = self.algorand_helper.get_global_vars(app_id, [constants.TIQUET_PRICE_GLOBAL_VAR_NAME, constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME, constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME])
-        constant_global_vars = self.algorand_helper.get_global_vars(self.constants_app_id, [constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME, constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME])
+        global_vars = self.algorand_helper.get_global_vars(
+            app_id,
+            [
+                constants.TIQUET_PRICE_GLOBAL_VAR_NAME,
+                constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME,
+                constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME,
+            ],
+        )
+        constant_global_vars = self.algorand_helper.get_global_vars(
+            self.constants_app_id,
+            [
+                constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME,
+                constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME,
+            ],
+        )
         global_vars.update(constant_global_vars)
         return global_vars
 
     def _get_processing_fee(self, global_vars):
         tiquet_price = global_vars[constants.TIQUET_PRICE_GLOBAL_VAR_NAME]["value"]
-        processing_fee_numerator = global_vars[constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME]["value"]
-        processing_fee_denominator = global_vars[constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME]["value"]
-        return int((processing_fee_numerator / processing_fee_denominator) * tiquet_price)
+        processing_fee_numerator = global_vars[
+            constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME
+        ]["value"]
+        processing_fee_denominator = global_vars[
+            constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME
+        ]["value"]
+        return int(
+            (processing_fee_numerator / processing_fee_denominator) * tiquet_price
+        )
 
     def _get_tiquet_royalty_amount(self, global_vars):
         tiquet_price = global_vars[constants.TIQUET_PRICE_GLOBAL_VAR_NAME]["value"]
-        royalty_numerator = global_vars[constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME]["value"]
-        royalty_denominator = global_vars[constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME]["value"]
+        royalty_numerator = global_vars[
+            constants.TIQUET_ISSUER_ROYALTY_NUMERATOR_GLOBAL_VAR_NAME
+        ]["value"]
+        royalty_denominator = global_vars[
+            constants.TIQUET_ISSUER_ROYALTY_DENOMINATOR_GLOBAL_VAR_NAME
+        ]["value"]
         return int((royalty_numerator / royalty_denominator) * tiquet_price)

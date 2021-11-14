@@ -51,7 +51,7 @@ def test_initial_sale_success(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id)
     # Check tiquet is no longer in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id, amount=0)
-    
+
     expected_global_vars = {
         # Check tiquet price global variable is set and is assigned the correct
         # price.
@@ -78,11 +78,10 @@ def test_initial_sale_success(
     )
 
     # Check tiquet.io account is credited processing fee.
-    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
-    assert (
-        tiquet_io_balance_after - tiquet_io_balance_before
-        == processing_fee
+    processing_fee = get_tiquet_processing_fee(
+        tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator
     )
+    assert tiquet_io_balance_after - tiquet_io_balance_before == processing_fee
     # Check issuer account is credited tiquet amount.
     assert issuer_balance_after - issuer_balance_before == tiquet_price
     # Check buyer account is debited tiquet price and fees for 4 txns.
@@ -166,7 +165,6 @@ def test_initial_sale_insufficient_payment_amount(
     assert buyer_balance_after - buyer_balance_before == -1 * algod_params.fee
 
 
-
 def test_initial_sale_no_tiquet_payment(
     tiquet_io_account,
     issuer_account,
@@ -215,7 +213,9 @@ def test_initial_sale_no_tiquet_payment(
     )
 
     # Processing fee to tiquet.io.
-    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+    processing_fee = get_tiquet_processing_fee(
+        tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator
+    )
     txn3 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -245,7 +245,7 @@ def test_initial_sale_no_tiquet_payment(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
-    
+
     expected_global_vars = {
         # Check tiquet price global variable is set and is assigned the correct
         # price.
@@ -337,7 +337,9 @@ def test_initial_sale_payment_to_non_issuer(
     )
 
     # Processing fee to tiquet.io.
-    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+    processing_fee = get_tiquet_processing_fee(
+        tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator
+    )
     txn4 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -370,7 +372,7 @@ def test_initial_sale_payment_to_non_issuer(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
-    
+
     expected_global_vars = {
         # Check tiquet price global variable is set and is assigned the correct
         # price.
@@ -573,7 +575,9 @@ def test_initial_sale_processing_fee_to_non_tiquet_io(
     )
 
     # Processing fee to fraudster.
-    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+    processing_fee = get_tiquet_processing_fee(
+        tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator
+    )
     txn4 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -700,7 +704,9 @@ def test_initial_sale_from_fraudster(
     )
 
     # Processing fee to tiquet.io from buyer.
-    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+    processing_fee = get_tiquet_processing_fee(
+        tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator
+    )
     txn4 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -733,7 +739,7 @@ def test_initial_sale_from_fraudster(
     assert algorand_helper.has_asset(buyer_account["pk"], tiquet_id, amount=0)
     # Check tiquet is still in possession of issuer.
     assert algorand_helper.has_asset(issuer_account["pk"], tiquet_id)
-    
+
     expected_global_vars = {
         # Check tiquet price global variable is set and is assigned the correct
         # price.
@@ -904,6 +910,7 @@ def test_initial_sale_with_fake_escrow(
     # Check buyer account balance is unchanged.
     assert buyer_balance_after == buyer_balance_before
 
+
 def test_initial_sale_with_extra_txn(
     tiquet_io_account,
     issuer_account,
@@ -963,7 +970,9 @@ def test_initial_sale_with_extra_txn(
     )
 
     # Processing fee to tiquet.io from buyer.
-    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+    processing_fee = get_tiquet_processing_fee(
+        tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator
+    )
     txn4 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -1038,6 +1047,7 @@ def test_initial_sale_with_extra_txn(
     # Check buyer account balance is unchanged.
     assert buyer_balance_after == buyer_balance_before
 
+
 def test_initial_sale_with_two_extra_txns(
     tiquet_io_account,
     issuer_account,
@@ -1097,7 +1107,9 @@ def test_initial_sale_with_two_extra_txns(
     )
 
     # Processing fee to tiquet.io from buyer.
-    processing_fee = get_tiquet_processing_fee(tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator)
+    processing_fee = get_tiquet_processing_fee(
+        tiquet_price, tiquet_processing_fee_numerator, tiquet_processing_fee_denominator
+    )
     txn4 = transaction.PaymentTxn(
         sender=buyer_account["pk"],
         sp=algod_params,
@@ -1182,5 +1194,8 @@ def test_initial_sale_with_two_extra_txns(
     # Check buyer account balance is unchanged.
     assert buyer_balance_after == buyer_balance_before
 
-def get_tiquet_processing_fee(tiquet_price, processing_fee_numerator, processing_fee_denominator):
+
+def get_tiquet_processing_fee(
+    tiquet_price, processing_fee_numerator, processing_fee_denominator
+):
     return int((processing_fee_numerator / processing_fee_denominator) * tiquet_price)

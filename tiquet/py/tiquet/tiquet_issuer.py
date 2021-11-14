@@ -92,7 +92,9 @@ class TiquetIssuer:
             "ROYALTY_NUMERATOR": royalty_frac.numerator,
             "ROYALTY_DENOMINATOR": royalty_frac.denominator,
         }
-        app_prog = self.algorand_helper.get_prog(self.app_fpath, var_assigns=var_assigns)
+        app_prog = self.algorand_helper.get_prog(
+            self.app_fpath, var_assigns=var_assigns
+        )
         clear_prog = self.algorand_helper.get_prog(self.clear_fpath)
 
         local_ints = 0
@@ -130,7 +132,9 @@ class TiquetIssuer:
             "TIQUET_IO_ADDRESS": self.tiquet_io_account,
             "ISSUER_ADDRESS": self.pk,
         }
-        escrow_prog = self.algorand_helper.get_prog(self.escrow_fpath, var_assigns=var_assigns)
+        escrow_prog = self.algorand_helper.get_prog(
+            self.escrow_fpath, var_assigns=var_assigns
+        )
         return LogicSigAccount(escrow_prog)
 
     def _set_tiquet_clawback(self, tiquet_id, escrow_address):

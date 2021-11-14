@@ -33,11 +33,17 @@ def test_issue_tiquet_success(
     expected_constants = {
         # Check tiquet.io processing fee global variables are set and assigned
         # the correct values.
-        constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME: {"value": tiquet_processing_fee_numerator},
-        constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME: {"value": tiquet_processing_fee_denominator},
+        constants.TIQUET_PROCESSING_FEE_NUMERATOR_GLOBAL_VAR_NAME: {
+            "value": tiquet_processing_fee_numerator
+        },
+        constants.TIQUET_PROCESSING_FEE_DENOMINATOR_GLOBAL_VAR_NAME: {
+            "value": tiquet_processing_fee_denominator
+        },
     }
     assert (
-        algorand_helper.get_global_vars(administrator.constants_app_id, expected_constants.keys())
+        algorand_helper.get_global_vars(
+            administrator.constants_app_id, expected_constants.keys()
+        )
         == expected_constants
     )
 
@@ -65,6 +71,7 @@ def test_issue_tiquet_success(
         algorand_helper.get_global_vars(app_id, expected_app_global_vars.keys())
         == expected_app_global_vars
     )
+
 
 def test_spoof_issue_tiquet_fail(
     tiquet_io_account,
@@ -104,6 +111,7 @@ def test_spoof_issue_tiquet_fail(
         # TODO(hv): Is this the right message we should be checking for?
         assert "transaction already in ledger" in e.message
 
+
 def test_fraudster_updating_escrow_address_fail(
     tiquet_io_account,
     issuer_account,
@@ -137,7 +145,10 @@ def test_fraudster_updating_escrow_address_fail(
         index=app_id,
         accounts=[issuer_account["pk"]],
         foreign_assets=[tiquet_id],
-        app_args=["STORE_ESCROW_ADDRESS", encoding.decode_address(fake_escrow_lsig.address())],
+        app_args=[
+            "STORE_ESCROW_ADDRESS",
+            encoding.decode_address(fake_escrow_lsig.address()),
+        ],
     )
     stxn = txn.sign(fraudster_account["sk"])
 
