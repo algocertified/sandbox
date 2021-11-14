@@ -11,6 +11,7 @@ from tiquet.common import constants
 # amounts.
 
 
+@pytest.mark.batch("1")
 def test_resale_success(
     tiquet_io_account,
     issuer_account,
@@ -107,6 +108,7 @@ def test_resale_success(
     )
 
 
+@pytest.mark.batch("1")
 def test_resale_before_post(
     tiquet_io_account,
     issuer_account,
@@ -189,6 +191,7 @@ def test_resale_before_post(
     )
 
 
+@pytest.mark.batch("1")
 def test_seller_tiquet_transfer(
     tiquet_io_account,
     issuer_account,
@@ -271,6 +274,7 @@ def test_seller_tiquet_transfer(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("1")
 def test_seller_tiquet_transfer_through_escrow(
     tiquet_io_account,
     issuer_account,
@@ -353,6 +357,7 @@ def test_seller_tiquet_transfer_through_escrow(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("1")
 def test_buyer_stealing_tiquet(
     tiquet_io_account,
     issuer_account,
@@ -435,6 +440,7 @@ def test_buyer_stealing_tiquet(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("1")
 def test_resale_no_tiquet_payment(
     tiquet_io_account,
     issuer_account,
@@ -573,6 +579,7 @@ def test_resale_no_tiquet_payment(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("1")
 def test_resale_incorrect_tiquet_payment(
     tiquet_io_account,
     issuer_account,
@@ -720,6 +727,7 @@ def test_resale_incorrect_tiquet_payment(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("1")
 def test_resale_tiquet_payment_to_nonseller(
     tiquet_io_account,
     issuer_account,
@@ -872,6 +880,7 @@ def test_resale_tiquet_payment_to_nonseller(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+@pytest.mark.batch("1")
 def test_resale_no_royalty(
     tiquet_io_account,
     issuer_account,
@@ -1004,6 +1013,7 @@ def test_resale_no_royalty(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("1")
 def test_resale_incorrect_royalty(
     tiquet_io_account,
     issuer_account,
@@ -1151,6 +1161,7 @@ def test_resale_incorrect_royalty(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("2")
 def test_resale_royalty_to_nonseller(
     tiquet_io_account,
     issuer_account,
@@ -1303,6 +1314,7 @@ def test_resale_royalty_to_nonseller(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+@pytest.mark.batch("2")
 def test_resale_no_processing_fee(
     tiquet_io_account,
     issuer_account,
@@ -1435,6 +1447,7 @@ def test_resale_no_processing_fee(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("2")
 def test_resale_incorrect_processing_fee(
     tiquet_io_account,
     issuer_account,
@@ -1582,6 +1595,7 @@ def test_resale_incorrect_processing_fee(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+@pytest.mark.batch("2")
 def test_resale_processing_fee_to_nonseller(
     tiquet_io_account,
     issuer_account,
@@ -1734,6 +1748,7 @@ def test_resale_processing_fee_to_nonseller(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+@pytest.mark.batch("2")
 def test_resale_from_fraudster(
     tiquet_io_account,
     issuer_account,
@@ -1886,6 +1901,7 @@ def test_resale_from_fraudster(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+@pytest.mark.batch("2")
 def test_resale_with_extra_txn(
     tiquet_io_account,
     issuer_account,

@@ -122,8 +122,6 @@ class TiquetIssuer:
         ptx = self.algodclient.pending_transaction_info(txid)
         app_id = ptx["application-index"]
 
-        # TODO(hv): Add logging statements
-
         return app_id
 
     def _deploy_tiquet_escrow(self, app_id, tasa_id):
