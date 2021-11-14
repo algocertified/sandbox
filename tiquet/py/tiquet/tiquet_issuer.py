@@ -1,5 +1,6 @@
 import base64
 
+from tiquet.common import constants
 from tiquet.common.algorand_helper import AlgorandHelper
 from algosdk import encoding
 from algosdk.future.transaction import (
@@ -88,15 +89,19 @@ class TiquetIssuer:
             "TIQUET_PRICE": price,
             "TIQUET_ID": tasa_id,
             "ISSUER_ADDRESS": self.pk,
+            "TIQUET_IO_ADDRESS": self.tiquet_io_account,
             "ROYALTY_NUMERATOR": royalty_frac.numerator,
             "ROYALTY_DENOMINATOR": royalty_frac.denominator,
         }
-        app_prog = self.algorand_helper.get_prog(self.app_fpath, var_assigns=var_assigns)
+        app_prog = self.algorand_helper.get_prog(
+            self.app_fpath, var_assigns=var_assigns
+        )
         clear_prog = self.algorand_helper.get_prog(self.clear_fpath)
 
         local_ints = 0
         local_bytes = 0
-        global_ints = 4
+        global_ints = 5
+        # global_ints = 4
         global_bytes = 1
         global_schema = StateSchema(global_ints, global_bytes)
         local_schema = StateSchema(local_ints, local_bytes)
@@ -128,7 +133,9 @@ class TiquetIssuer:
             "TIQUET_IO_ADDRESS": self.tiquet_io_account,
             "ISSUER_ADDRESS": self.pk,
         }
-        escrow_prog = self.algorand_helper.get_prog(self.escrow_fpath, var_assigns=var_assigns)
+        escrow_prog = self.algorand_helper.get_prog(
+            self.escrow_fpath, var_assigns=var_assigns
+        )
         return LogicSigAccount(escrow_prog)
 
     def _set_tiquet_clawback(self, tiquet_id, escrow_address):
@@ -166,7 +173,10 @@ class TiquetIssuer:
             index=app_id,
             accounts=[self.pk],
             foreign_assets=[tiquet_id],
-            app_args=[encoding.decode_address(escrow_address)],
+            app_args=[
+                constants.TIQUET_APP_STORE_ESCROW_ADDRESS_COMMAND,
+                encoding.decode_address(escrow_address),
+            ],
         )
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)

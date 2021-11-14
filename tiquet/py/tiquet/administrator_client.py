@@ -44,7 +44,9 @@ class AdministratorClient:
 
     def deploy_constants_app(self):
         if self.constants_app_id:
-            raise ValueError("Constants App (Id: %d) already deployed." % self.constants_app_id)
+            raise ValueError(
+                "Constants App (Id: %d) already deployed." % self.constants_app_id
+            )
 
         app_prog = self.algorand_helper.get_prog(self.app_fpath)
         clear_prog = self.algorand_helper.get_prog(self.clear_fpath)

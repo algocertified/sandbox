@@ -1,30 +1,39 @@
 #pragma version 4
 
-//////////////////////////
-// Application Creation //
-//////////////////////////
+///////////////////////
+// Application Entry //
+///////////////////////
 
-// Check txn is for application creation.
+// Application creation.
 txn ApplicationID
 int 0
 ==
-// If yes, create tiquet. 
+// Create tiquet when application is created. 
 bnz tiquet_creation
-// Otherwise, check txn is for opting-in to application. 
+// Opt-in to application. 
 txn OnCompletion
 int OptIn
 ==
-bnz optin
-// Otherwise, check txn is making an application call. 
+bnz optin_app
+// Application call. 
 txn OnCompletion
 int NoOp
 ==
 bnz tiquet
-// Otherwise, return false.
+txn OnCompletion
+int CloseOut
+==
+bnz closeout_app
+txn OnCompletion
+int UpdateApplication
+==
+bnz update_app
+txn OnCompletion
+int DeleteApplication
+==
+bnz delete_app
 // TODO: Handle other application ops.
-int 0
-return
-b end_tiquet_app
+b failure
 
 /////////////////////
 // Tiquet Creation //
@@ -32,86 +41,119 @@ b end_tiquet_app
 
 tiquet_creation:
 // Set tiquet price.
-// TODO: Represent price in USD.
 byte "PRICE"
 int {{TIQUET_PRICE}}
 app_global_put
+// Set tiquet issuer royalty parameters.
 byte "ROYALTY_NUMERATOR"
 int {{ROYALTY_NUMERATOR}}
 app_global_put
 byte "ROYALTY_DENOMINATOR"
 int {{ROYALTY_DENOMINATOR}}
 app_global_put
+// Indicate tiquet is for sale by setting "for sale" flag to true. 
 byte "FOR_SALE"
 int 1
 app_global_put
-int 1
-return
-b end_tiquet_app
+b success
 
 /////////////
 // Opt-In  //
 /////////////
 
-optin:
-int 1
-return
-b end_tiquet_app
+optin_app:
+b success
 
-/////////////////////////
-// Update Application  //
-/////////////////////////
+//////////////////////
+// Application Call //
+//////////////////////
 
-update_app:
-// Only the application creator can update.
-global CreatorAddress
-txn Sender
-==
-return
-b end_tiquet_app
-
-//////////////////
-// Application  //
-//////////////////
-
-// TODO: Activate different code paths via commands specified via an application
-// arg
 tiquet:
-txn NumAppArgs
-int 2
+gtxn 0 NumAppArgs
+int 1
+>=
+bz failure
+gtxna 0 ApplicationArgs 0
+byte "INITIAL_SALE"
+==
+bnz initial_sale
+gtxna 0 ApplicationArgs 0
+byte "POST_FOR_RESALE"
 ==
 bnz post_for_resale
-txn NumAppArgs
-int 1
+gtxna 0 ApplicationArgs 0
+byte "RESALE"
+==
+bnz resale
+gtxna 0 ApplicationArgs 0
+byte "STORE_ESCROW_ADDRESS"
 ==
 bnz store_escrow_address
-b sale
-// Fail otherwise.
-int 0
-return
-b end_tiquet_app
-
-store_escrow_address:
-byte "ESCROW_ADDRESS"
-txna ApplicationArgs 0
-app_global_put
-int 1
-return
-b end_tiquet_app
+b failure
 
 ///////////////////
 // Initial Sale  //
 ///////////////////
 
+initial_sale:
+global GroupSize
+int 4
+==
+// Check issuer owns the TASA.
+addr {{ISSUER_ADDRESS}}
+int {{TIQUET_ID}}
+asset_holding_get AssetBalance
+store 0
+store 1
+load 0
+&&
+bnz sale
+b failure
+
+/////////////////////
+// Post for Resale //
+/////////////////////
+
+post_for_resale:
+// 0th-index value into accounts array, i.e. caller's address. 
+int 0
+int {{TIQUET_ID}}
+asset_holding_get AssetBalance
+store 0
+store 1
+load 0
+// Fail if the caller doesn't own the TASA.
+bz failure
+byte "FOR_SALE"
+int 1
+app_global_put
+byte "PRICE"
+txna ApplicationArgs 1
+btoi
+app_global_put
+b success
+
+/////////////
+// Resale  //
+/////////////
+
+resale:
+global GroupSize
+int 5
+==
+bnz sale
+b failure
+
+///////////
+// Sale  //
+///////////
+
+// Handles both Initial Sale and Resale.
 sale:
 byte "FOR_SALE"
 app_global_get
 int 0
 >
-global GroupSize
-int 4
->=
-&&
 gtxn 0 TypeEnum
 int appl
 ==
@@ -199,28 +241,43 @@ app_global_put
 bnz success
 b failure
 
-/////////////////////
-// Post for Resale //
-/////////////////////
+///////////////////////////
+// Store Escrow Address  //
+///////////////////////////
 
-post_for_resale:
-// 0th-index value into accounts array, i.e. caller's address. 
-int 0
-int {{TIQUET_ID}}
-asset_holding_get AssetBalance
-store 0
-store 1
-load 0
-// Fail if the caller doesn't own the TASA.
+store_escrow_address:
+addr {{ISSUER_ADDRESS}}
+txn Sender
+==
 bz failure
-byte "FOR_SALE"
-int 1
-app_global_put
-byte "PRICE"
-txna ApplicationArgs 1
-btoi
+byte "ESCROW_ADDRESS"
+gtxna 0 ApplicationArgs 1
 app_global_put
 b success
+
+///////////////////////////
+// Closeout Application  //
+///////////////////////////
+
+closeout_app:
+b success
+
+//////////////////////////////////
+// Update / Delete Application  //
+//////////////////////////////////
+
+update_app:
+delete_app:
+// Only the tiquet issuer or tiquet.io are allowed to update.
+addr {{ISSUER_ADDRESS}}
+txn Sender
+==
+addr {{TIQUET_IO_ADDRESS}}
+txn Sender
+==
+||
+bnz success
+b failure
 
 /////////////////////
 // Application End //
