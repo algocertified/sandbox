@@ -1,3 +1,4 @@
+import base64
 import pytest
 import uuid
 
@@ -112,6 +113,7 @@ def test_fraudster_updating_escrow_address_fail(
     issuer_tiquet_royalty_denominator,
     administrator,
     tiquet_issuance_info,
+    success_teal_fpath,
     algodclient,
     algod_params,
     algorand_helper,
@@ -119,14 +121,15 @@ def test_fraudster_updating_escrow_address_fail(
 ):
     tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
-    # with open(success_teal_fpath, "rt") as f:
-    #     fake_escrow_prog = base64.b64decode(algodclient.compile(f.read())["result"])
-    # fake_escrow_lsig = transaction.LogicSigAccount(fake_escrow_prog)
-    # fake_escrow_lsig_address = fake_escrow_lsig.address()
+    with open(success_teal_fpath, "rt") as f:
+        fake_escrow_prog = base64.b64decode(algodclient.compile(f.read())["result"])
+    fake_escrow_lsig = transaction.LogicSigAccount(fake_escrow_prog)
 
     tiquet_io_balance_before = algorand_helper.get_amount(tiquet_io_account["pk"])
     issuer_balance_before = algorand_helper.get_amount(issuer_account["pk"])
     fraudster_balance_before = algorand_helper.get_amount(fraudster_account["pk"])
+
+    assert escrow_lsig.address() != fake_escrow_lsig.address()
 
     txn = transaction.ApplicationNoOpTxn(
         sender=fraudster_account["pk"],
@@ -134,7 +137,7 @@ def test_fraudster_updating_escrow_address_fail(
         index=app_id,
         accounts=[issuer_account["pk"]],
         foreign_assets=[tiquet_id],
-        app_args=["STORE_ESCROW_ADDRESS", encoding.decode_address(fraudster_account["pk"])],
+        app_args=["STORE_ESCROW_ADDRESS", encoding.decode_address(fake_escrow_lsig.address())],
     )
     stxn = txn.sign(fraudster_account["sk"])
 
