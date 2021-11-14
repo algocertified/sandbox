@@ -216,6 +216,10 @@ b failure
 ///////////////////////////
 
 store_escrow_address:
+addr {{ISSUER_ADDRESS}}
+txn Sender
+==
+bz failure
 byte "ESCROW_ADDRESS"
 gtxna 0 ApplicationArgs 1
 app_global_put
