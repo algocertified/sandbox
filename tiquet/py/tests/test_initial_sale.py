@@ -199,7 +199,7 @@ def test_initial_sale_no_tiquet_payment(
         accounts=[issuer_account["pk"]],
         foreign_apps=[administrator.constants_app_id],
         foreign_assets=[tiquet_id],
-        app_args=["SALE"],
+        app_args=[constants.TIQUET_APP_INITIAL_SALE_COMMAND],
     )
 
     # Tiquet transfer to buyer.
@@ -315,7 +315,7 @@ def test_initial_sale_payment_to_non_issuer(
         accounts=[issuer_account["pk"]],
         foreign_apps=[administrator.constants_app_id],
         foreign_assets=[tiquet_id],
-        app_args=["SALE"],
+        app_args=[constants.TIQUET_APP_INITIAL_SALE_COMMAND],
     )
 
     # Tiquet transfer to buyer.
@@ -440,7 +440,7 @@ def test_initial_sale_no_processing_fee(
         accounts=[issuer_account["pk"]],
         foreign_apps=[administrator.constants_app_id],
         foreign_assets=[tiquet_id],
-        app_args=["SALE"],
+        app_args=[constants.TIQUET_APP_INITIAL_SALE_COMMAND],
     )
 
     # Tiquet transfer to buyer.
@@ -553,7 +553,7 @@ def test_initial_sale_processing_fee_to_non_tiquet_io(
         accounts=[issuer_account["pk"]],
         foreign_apps=[administrator.constants_app_id],
         foreign_assets=[tiquet_id],
-        app_args=["SALE"],
+        app_args=[constants.TIQUET_APP_INITIAL_SALE_COMMAND],
     )
 
     # Tiquet transfer to buyer.
@@ -682,7 +682,7 @@ def test_initial_sale_from_fraudster(
         accounts=[issuer_account["pk"]],
         foreign_apps=[administrator.constants_app_id],
         foreign_assets=[tiquet_id],
-        app_args=["SALE"],
+        app_args=[constants.TIQUET_APP_INITIAL_SALE_COMMAND],
     )
 
     # Tiquet transfer to fraudster.
@@ -824,7 +824,7 @@ def test_initial_sale_with_fake_escrow(
         accounts=[issuer_account["pk"]],
         foreign_apps=[administrator.constants_app_id],
         foreign_assets=[tiquet_id],
-        app_args=["SALE"],
+        app_args=[constants.TIQUET_APP_INITIAL_SALE_COMMAND],
     )
 
     # Tiquet transfer through fake escrow.
@@ -948,7 +948,7 @@ def test_initial_sale_with_extra_txn(
         accounts=[issuer_account["pk"]],
         foreign_apps=[administrator.constants_app_id],
         foreign_assets=[tiquet_id],
-        app_args=["SALE"],
+        app_args=[constants.TIQUET_APP_INITIAL_SALE_COMMAND],
     )
 
     # Tiquet transfer to buyer.
@@ -1085,7 +1085,7 @@ def test_initial_sale_with_two_extra_txns(
         accounts=[issuer_account["pk"]],
         foreign_apps=[administrator.constants_app_id],
         foreign_assets=[tiquet_id],
-        app_args=["SALE"],
+        app_args=[constants.TIQUET_APP_INITIAL_SALE_COMMAND],
     )
 
     # Tiquet transfer to buyer.

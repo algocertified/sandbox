@@ -74,17 +74,40 @@ int 1
 >=
 bz failure
 gtxna 0 ApplicationArgs 0
+byte "INITIAL_SALE"
+==
+bnz initial_sale
+gtxna 0 ApplicationArgs 0
 byte "POST_FOR_RESALE"
 ==
 bnz post_for_resale
 gtxna 0 ApplicationArgs 0
-byte "SALE"
+byte "RESALE"
 ==
-bnz sale
+bnz resale
 gtxna 0 ApplicationArgs 0
 byte "STORE_ESCROW_ADDRESS"
 ==
 bnz store_escrow_address
+b failure
+
+///////////////////
+// Initial Sale  //
+///////////////////
+
+initial_sale:
+global GroupSize
+int 4
+==
+// Check issuer owns the TASA.
+addr {{ISSUER_ADDRESS}}
+int {{TIQUET_ID}}
+asset_holding_get AssetBalance
+store 0
+store 1
+load 0
+&&
+bnz sale
 b failure
 
 /////////////////////
@@ -110,6 +133,17 @@ btoi
 app_global_put
 b success
 
+/////////////
+// Resale  //
+/////////////
+
+resale:
+global GroupSize
+int 5
+==
+bnz sale
+b failure
+
 ///////////
 // Sale  //
 ///////////
@@ -120,10 +154,6 @@ byte "FOR_SALE"
 app_global_get
 int 0
 >
-global GroupSize
-int 4
->=
-&&
 gtxn 0 TypeEnum
 int appl
 ==

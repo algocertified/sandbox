@@ -37,6 +37,11 @@ class TiquetClient:
         is_resale = issuer_account != seller_account
         global_vars = self._get_global_vars(app_id)
 
+        if is_resale:
+            app_command_name = constants.TIQUET_APP_RESALE_COMMAND
+        else:
+            app_command_name = constants.TIQUET_APP_INITIAL_SALE_COMMAND
+
         # Application call to execute sale.
         txn1 = transaction.ApplicationNoOpTxn(
             sender=self.pk,
@@ -45,7 +50,7 @@ class TiquetClient:
             accounts=[issuer_account, seller_account],
             foreign_apps=[self.constants_app_id],
             foreign_assets=[tiquet_id],
-            app_args=["SALE"],
+            app_args=[app_command_name],
         )
 
         # Tiquet transfer to buyer.
@@ -128,7 +133,7 @@ class TiquetClient:
             index=app_id,
             accounts=[self.pk],
             foreign_assets=[tiquet_id],
-            app_args=["POST_FOR_RESALE", tiquet_price],
+            app_args=[constants.TIQUET_APP_POST_FOR_RESALE_COMMAND, tiquet_price],
         )
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)

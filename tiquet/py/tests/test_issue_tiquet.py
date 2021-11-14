@@ -146,7 +146,7 @@ def test_fraudster_updating_escrow_address_fail(
         accounts=[issuer_account["pk"]],
         foreign_assets=[tiquet_id],
         app_args=[
-            "STORE_ESCROW_ADDRESS",
+            constants.TIQUET_APP_STORE_ESCROW_ADDRESS_COMMAND,
             encoding.decode_address(fake_escrow_lsig.address()),
         ],
     )

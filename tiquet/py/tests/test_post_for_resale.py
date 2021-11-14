@@ -160,7 +160,7 @@ def test_post_for_resale_from_fraudster(
         index=app_id,
         accounts=[buyer_account["pk"]],
         foreign_assets=[tiquet_id],
-        app_args=["POST_FOR_RESALE", tiquet_resale_price],
+        app_args=[constants.TIQUET_APP_POST_FOR_RESALE_COMMAND, tiquet_resale_price],
     )
     stxn = txn.sign(fraudster_account["sk"])
 

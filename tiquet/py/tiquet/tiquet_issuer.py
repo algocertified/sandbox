@@ -1,5 +1,6 @@
 import base64
 
+from tiquet.common import constants
 from tiquet.common.algorand_helper import AlgorandHelper
 from algosdk import encoding
 from algosdk.future.transaction import (
@@ -172,7 +173,10 @@ class TiquetIssuer:
             index=app_id,
             accounts=[self.pk],
             foreign_assets=[tiquet_id],
-            app_args=["STORE_ESCROW_ADDRESS", encoding.decode_address(escrow_address)],
+            app_args=[
+                constants.TIQUET_APP_STORE_ESCROW_ADDRESS_COMMAND,
+                encoding.decode_address(escrow_address),
+            ],
         )
         stxn = txn.sign(self.sk)
         txid = self.algorand_helper.send_and_wait_for_txn(stxn)

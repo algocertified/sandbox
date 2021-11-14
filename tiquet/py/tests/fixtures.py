@@ -250,6 +250,28 @@ def second_buyer(
 
 
 @pytest.fixture(scope="function")
+def fraudster_buyer(
+    tiquet_io_account,
+    fraudster_account,
+    constants_app_id,
+    tiquet_issuance_info,
+    algodclient,
+    algod_params,
+    logger,
+):
+    return TiquetClient(
+        pk=fraudster_account["pk"],
+        sk=fraudster_account["sk"],
+        mnemonic=fraudster_account["mnemonic"],
+        algodclient=algodclient,
+        algod_params=algod_params,
+        logger=logger,
+        tiquet_io_account=tiquet_io_account["pk"],
+        constants_app_id=constants_app_id,
+    )
+
+
+@pytest.fixture(scope="function")
 def initial_sale(tiquet_issuance_info, buyer, issuer_account, tiquet_price, logger):
     tiquet_id, app_id, escrow_lsig = tiquet_issuance_info
 
