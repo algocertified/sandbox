@@ -10,6 +10,7 @@ from tiquet.common import constants
 from tiquet.tiquet_issuer import TiquetIssuer
 
 
+# Issuer issues a new tiquet. 
 def test_issue_tiquet_success(
     tiquet_io_account,
     issuer_account,
@@ -73,6 +74,7 @@ def test_issue_tiquet_success(
     )
 
 
+# Fraudster tries to issue a new tiquet on behalf of an issuer.
 def test_spoof_issue_tiquet_fail(
     tiquet_io_account,
     issuer_account,
@@ -112,6 +114,8 @@ def test_spoof_issue_tiquet_fail(
         assert "transaction already in ledger" in e.message
 
 
+# Fraudster tries to update the escrow address, pointing to the Initial Sale and
+# Resale logic, inside the companion application for an issued tiquet.
 def test_fraudster_updating_escrow_address_fail(
     tiquet_io_account,
     issuer_account,

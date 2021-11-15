@@ -11,6 +11,7 @@ from tiquet.common import constants
 # amounts.
 
 
+# Successful purchase of a tiquet from an issuer.
 def test_initial_sale_success(
     tiquet_io_account,
     issuer_account,
@@ -91,6 +92,8 @@ def test_initial_sale_success(
     )
 
 
+# Buyer tries to purchase a tiquet from an issuer with payment that's lower than
+# the target price set by the issuer.
 def test_initial_sale_insufficient_payment_amount(
     tiquet_io_account,
     issuer_account,
@@ -165,6 +168,7 @@ def test_initial_sale_insufficient_payment_amount(
     assert buyer_balance_after - buyer_balance_before == -1 * algod_params.fee
 
 
+# Buyer tries to transfer a tiquet from an issuer without payment.
 def test_initial_sale_no_tiquet_payment(
     tiquet_io_account,
     issuer_account,
@@ -279,6 +283,8 @@ def test_initial_sale_no_tiquet_payment(
     assert buyer_balance_after - buyer_balance_before == 0
 
 
+# Buyer tries to purchase a tiquet from an issuer and send the payment to a
+# non-issuer account.
 def test_initial_sale_payment_to_non_issuer(
     tiquet_io_account,
     issuer_account,
@@ -408,6 +414,8 @@ def test_initial_sale_payment_to_non_issuer(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+# Buyer tries to purchase a tiquet from an issuer without paying tiquet.io a
+# processing fee.
 def test_initial_sale_no_processing_fee(
     tiquet_io_account,
     issuer_account,
@@ -517,6 +525,8 @@ def test_initial_sale_no_processing_fee(
     assert buyer_balance_after - buyer_balance_before == 0
 
 
+# Buyer tries to purchase a tiquet from an issuer and pay the processing payment
+# to a non-tiquet.io account.
 def test_initial_sale_processing_fee_to_non_tiquet_io(
     tiquet_io_account,
     issuer_account,
@@ -646,6 +656,7 @@ def test_initial_sale_processing_fee_to_non_tiquet_io(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+# Fraudster tries to purchase a tiquet from an issuer on behalf of another user.
 def test_initial_sale_from_fraudster(
     tiquet_io_account,
     issuer_account,
@@ -775,6 +786,8 @@ def test_initial_sale_from_fraudster(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+# Buyer tries to purchase a tiquet from an issuer by injecting their own escrow
+# logic.
 def test_initial_sale_with_fake_escrow(
     tiquet_io_account,
     issuer_account,
@@ -911,6 +924,7 @@ def test_initial_sale_with_fake_escrow(
     assert buyer_balance_after == buyer_balance_before
 
 
+# Buyer tries to send an a extra txn when purchasing a tiquet from an issuer.
 def test_initial_sale_with_extra_txn(
     tiquet_io_account,
     issuer_account,
@@ -1048,6 +1062,8 @@ def test_initial_sale_with_extra_txn(
     assert buyer_balance_after == buyer_balance_before
 
 
+# Buyer tries to send more than one extra txn when purchasing a tiquet from an
+# issuer.
 def test_initial_sale_with_two_extra_txns(
     tiquet_io_account,
     issuer_account,

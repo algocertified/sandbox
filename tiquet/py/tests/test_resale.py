@@ -11,6 +11,7 @@ from tiquet.common import constants
 # amounts.
 
 
+# Buyer successfully makes a secondary purchase of a tiquet from a reseller.
 @pytest.mark.batch("1")
 def test_resale_success(
     tiquet_io_account,
@@ -108,6 +109,8 @@ def test_resale_success(
     )
 
 
+# Buyer tries to make a secondary purchase of a tiquet, owned by another user,
+# before it's been posted for resale.
 @pytest.mark.batch("1")
 def test_resale_before_post(
     tiquet_io_account,
@@ -191,6 +194,7 @@ def test_resale_before_post(
     )
 
 
+# Owner of tiquet tries to directly transfer tiquet to another user.
 @pytest.mark.batch("1")
 def test_seller_tiquet_transfer(
     tiquet_io_account,
@@ -274,6 +278,8 @@ def test_seller_tiquet_transfer(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Owner of tiquet tries to directly transfer tiquet, going through the escrow,
+# to another user.
 @pytest.mark.batch("1")
 def test_seller_tiquet_transfer_through_escrow(
     tiquet_io_account,
@@ -357,6 +363,8 @@ def test_seller_tiquet_transfer_through_escrow(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Buyer tries to steal tiquet possessed by another user by executing a tiquet
+# transfer directly.
 @pytest.mark.batch("1")
 def test_buyer_stealing_tiquet(
     tiquet_io_account,
@@ -440,6 +448,7 @@ def test_buyer_stealing_tiquet(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller without payment.
 @pytest.mark.batch("1")
 def test_resale_no_tiquet_payment(
     tiquet_io_account,
@@ -579,6 +588,7 @@ def test_resale_no_tiquet_payment(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller with the wrong payment amount.
 @pytest.mark.batch("1")
 def test_resale_incorrect_tiquet_payment(
     tiquet_io_account,
@@ -727,6 +737,7 @@ def test_resale_incorrect_tiquet_payment(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller by sending the payment elsewhere.
 @pytest.mark.batch("1")
 def test_resale_tiquet_payment_to_nonseller(
     tiquet_io_account,
@@ -880,6 +891,8 @@ def test_resale_tiquet_payment_to_nonseller(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller without royalty payment to
+# issuer.
 @pytest.mark.batch("1")
 def test_resale_no_royalty(
     tiquet_io_account,
@@ -1013,6 +1026,8 @@ def test_resale_no_royalty(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller with the wrong royalty payment
+# amount to issuer.
 @pytest.mark.batch("1")
 def test_resale_incorrect_royalty(
     tiquet_io_account,
@@ -1161,6 +1176,8 @@ def test_resale_incorrect_royalty(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller and sends the royalty payment
+# amount to a non-issuer account.
 @pytest.mark.batch("2")
 def test_resale_royalty_to_nonseller(
     tiquet_io_account,
@@ -1314,6 +1331,8 @@ def test_resale_royalty_to_nonseller(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller without paying the tiquet.io
+# processing fee.
 @pytest.mark.batch("2")
 def test_resale_no_processing_fee(
     tiquet_io_account,
@@ -1447,6 +1466,8 @@ def test_resale_no_processing_fee(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller and pays the wrong amount for the 
+# processing fee to tiquet.io.
 @pytest.mark.batch("2")
 def test_resale_incorrect_processing_fee(
     tiquet_io_account,
@@ -1595,6 +1616,8 @@ def test_resale_incorrect_processing_fee(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller and pays the tiquet.io processing
+# fee to a non-tiquet.io account.
 @pytest.mark.batch("2")
 def test_resale_processing_fee_to_nonseller(
     tiquet_io_account,
@@ -1748,6 +1771,8 @@ def test_resale_processing_fee_to_nonseller(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+# Fraudster tries to purchase tiquet from reseller on the behalf of another
+# user.
 @pytest.mark.batch("2")
 def test_resale_from_fraudster(
     tiquet_io_account,
@@ -1901,6 +1926,7 @@ def test_resale_from_fraudster(
     assert fraudster_balance_after == fraudster_balance_before
 
 
+# Buyer tries to purchase tiquet from reseller with an extra transaction.
 @pytest.mark.batch("2")
 def test_resale_with_extra_txn(
     tiquet_io_account,

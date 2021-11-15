@@ -7,10 +7,7 @@ from fixtures import *
 from tiquet.common import constants
 
 
-# Tests are flaky, sometimes failing because account funds change by unexpected
-# amounts.
-
-
+# tiquet owner successfully makes a tiquet available for resale.
 def test_post_for_resale_success(
     buyer_account,
     tiquet_issuance_info,
@@ -68,6 +65,8 @@ def test_post_for_resale_success(
     assert buyer_balance_after - buyer_balance_before == -1 * algod_params.fee
 
 
+# tiquet owner successfully updates the resale price for a tiquet they've put up
+# for sale.
 def test_update_resale_price_success(
     buyer_account,
     tiquet_issuance_info,
@@ -134,6 +133,7 @@ def test_update_resale_price_success(
     assert buyer_balance_after - buyer_balance_before == -2 * algod_params.fee
 
 
+# Fraudster tries to post a tiquet owned by another user for resale.
 def test_post_for_resale_from_fraudster(
     buyer_account,
     fraudster_account,
