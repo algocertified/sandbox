@@ -1,7 +1,15 @@
-# Tiquet Algorand Sandbox
+# tiquet.io Algorand Sandbox
 
-This is a fast way to create and configure an Algorand development environment with [Algod](https://github.com/algorand/go-algorand) and [Indexer](https://github.com/algorand/indexer) for
-developing and testing Tiquet.
+This repository houses the proof-of-concept for tiquet.io, a smart-ticketing platform built on top
+of Algorand. It offers a fast way to create and configure an Algorand development environment with
+[Algod](https://github.com/algorand/go-algorand) for developing and testing the concepts of
+tiquet.io.
+
+Forked from [algorand/sandbox](https://github.com/algorand/sandbox).
+
+For more information about [tiquet.io], check out the [tiquet.io whitepaper](https://docs.google.com/document/d/1U6F0yy9292AMgeyjEj4ADfPQxbfGy9g-0BZZ6yRzLyg/edit#).
+
+## Prerequisites
 
 **Docker Compose**  _MUST_ be installed. [Instructions](https://docs.docker.com/compose/install/).
 
@@ -9,59 +17,7 @@ On a *Windows* machine, **Docker Desktop** comes with the necessary tools. Pleas
 
 **Warning**: Algorand Sandbox is *not* meant for production environments and should *not* be used to store secure Algorand keys. Updates may reset all the data and keys that are stored.
 
-## Usage
-
-Use the **sandbox** command to interact with the Algorand Sandbox.
-```
-sandbox commands:
-  up    [config]  -> start the sandbox environment.
-  down            -> tear down the sandbox environment.
-  reset           -> reset the containers to their initial state.
-  clean           -> stops and deletes containers and data directory.
-  test            -> runs some tests to demonstrate usage.
-  enter [algod||indexer||indexer-db]
-                  -> enter the sandbox container.
-  version         -> print binary versions.
-  copyTo <file>   -> copy <file> into the algod container. Useful for offline transactions & LogicSigs plus TEAL work.
-  copyFrom <file> -> copy <file> from the algod container. Useful for offline transactions & LogicSigs plus TEAL work.
-
-algorand commands:
-  logs            -> stream algorand logs with the carpenter utility.
-  status          -> get node status.
-  goal (args)     -> run goal command like 'goal node status'.
-  tealdbg (args)  -> run tealdbg command to debug program execution.
-
-special flags for 'up' command:
-  -v|--verbose           -> display verbose output when starting standbox.
-  -s|--skip-fast-catchup -> skip catchup when connecting to real network.
-  -i|--interactive       -> start docker-compose in interactive mode.
-```
-
-Sandbox creates the following API endpoints:
-* `algod`:
-  * address: `http://localhost:4001`
-  * token: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
-* `kmd`:
-  * address: `http://localhost:4002`
-  * token: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
-* `indexer`:
-  * address: `http://localhost:8980`
-
-### Tiquet
-
-Run the following to execute all Tiquet tests against the private network,
-
-```
-docker exec tiquet-privnet pytest -s
-```
-
-To do the same against the `testnet`, run the following,
-
-```
-docker exec tiquet-testnet pytest -s
-```
-
-## Getting Started
+## Installation
 
 ### Ubuntu and macOS
 
@@ -71,24 +27,8 @@ Open a terminal and run:
 ```
 git clone https://github.com/algocertified/sandbox.git
 ```
-In whatever local directory the sandbox should reside. Then:
-```
-cd sandbox
-./sandbox up
-```
-This will run the `sandbox` shell script with the default configuration. See the [Basic Configuration](#basic-configuration) for other options.
-
-
-Note for Ubuntu: You may need to alias `docker` to `sudo docker` or follow the steps in https://docs.docker.com/install/linux/linux-postinstall so that a non-root user can user the command `docker`.
-
-Run the test command for examples of how to interact with the environment:
-```
-./sandbox test
-```
-
 
 ### Windows
-
 
 Note: Be sure to use the latest version of Windows 10. Older versions may not work properly.
 
@@ -125,11 +65,120 @@ The [installation instructions](https://docs.docker.com/desktop/windows/install/
   ```
   check that Docker is running.
 
+## Usage
+
+In whatever local directory the sandbox should reside, launch the sandbox environment locally,
+
+```
+cd sandbox
+./sandbox up
+```
+
+This will run the `sandbox` shell script with the default configuration. See the [Basic Configuration](#basic-configuration) for other options.
+In the container `tiquet-privnet`, it initializes a private network with pre-defined accounts and Algo distributions. 
+
+Note for Ubuntu: You may need to alias `docker` to `sudo docker` or follow the steps in https://docs.docker.com/install/linux/linux-postinstall so that a non-root user can user the command `docker`.
+
+Run the test command for baseic examples of how to interact with the environment:
+```
+./sandbox test
+```
+
+Full listing of **sandbox** commands,
+```
+sandbox commands:
+  up    [config]  -> start the sandbox environment.
+  down            -> tear down the sandbox environment.
+  reset           -> reset the containers to their initial state.
+  clean           -> stops and deletes containers and data directory.
+  test            -> runs some tests to demonstrate usage.
+  enter [algod||indexer||indexer-db]
+                  -> enter the sandbox container.
+  version         -> print binary versions.
+  copyTo <file>   -> copy <file> into the algod container. Useful for offline transactions & LogicSigs plus TEAL work.
+  copyFrom <file> -> copy <file> from the algod container. Useful for offline transactions & LogicSigs plus TEAL work.
+
+algorand commands:
+  logs            -> stream algorand logs with the carpenter utility.
+  status          -> get node status.
+  goal (args)     -> run goal command like 'goal node status'.
+  tealdbg (args)  -> run tealdbg command to debug program execution.
+
+special flags for 'up' command:
+  -v|--verbose           -> display verbose output when starting standbox.
+  -s|--skip-fast-catchup -> skip catchup when connecting to real network.
+  -i|--interactive       -> start docker-compose in interactive mode.
+```
+
+The sandbox creates the following API endpoints:
+* `algod`:
+  * address: `http://localhost:4001`
+  * token: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
+* `kmd`:
+  * address: `http://localhost:4002`
+  * token: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
+* `indexer`:
+  * address: `http://localhost:8980`
+
+### Tests
+
+You can run tiquet.io test cases, each capturing a happy or sad user journey. Run
+command for ITO test cases,
+
+```
+docker container exec tiquet-privnet pytest py/tests/test_issue_tiquet.py
+
+```
+
+For running specific test cases,
+
+```
+docker container exec tiquet-privnet pytest py/tests/test_issue_tiquet.py -k "test_issue_tiquet_success or test_spoof_issue_tiquet_fail"
+
+```
+
+The blockchain operations performed in each test case permanently modifies the underlying private
+network state, e.g. if Algos are sent from one account to another, then those Algos are not returned
+after the test passes or fails. So after running a test case or test suite, you can manually reset
+the network state by running,
+
+```
+./sandbox reset
+```
+
+Run command for Initial Sale test cases,
+
+```
+docker container exec tiquet-privnet pytest py/tests/test_initial_sale.py
+
+```
+
+Run command for Post for Resale test cases,
+
+```
+docker container exec tiquet-privnet pytest py/tests/test_post_for_resale.py
+
+```
+
+The test cases for Resale are divided into two batches and you can only run one batch at a time,
+
+```
+docker container exec tiquet-privnet pytest py/tests/test_resale.py --batch 1
+./sandbox reset
+docker container exec tiquet-privnet pytest py/tests/test_resale.py --batch 2
+```
+
+This is because there's a limit on how many smart constract applications can be deployed from a
+single account. The same instance of the issuer account is used across test cases, and because there
+are a lot of resale test cases, the limit is reached before all test cases can finish. So to prevent
+an unintended interruption, the test cases are split into batches and you must reset the private
+network in between batch executions.
+
+NOTE: Support for running tests against the Algorand testnet is coming soon.
 
 ## Basic Configuration 
 
 Sandbox supports two primary modes of operation. By default, a [private network](#private-network) will be created, which is only available from the local environment. There are also configurations available for the [public networks](#public-network) which will attempt to connect to one of the long running Algorand networks and allow interaction with it.
-
 
 To specify which configuration to run:
 ```sh
@@ -168,7 +217,6 @@ Due to technical limitations, this configuration does not contain preconfigured 
 
 _Note_
 A newly created account will not be funded and wont be able to submit transactions until it is. If a `testnet` configuration is used, please visit the [TestNet Dispenser](https://bank.testnet.algorand.network/) to fund the newly created account.
-
 
 ## Advanced configurations
 
@@ -227,7 +275,6 @@ these commands will create and copy a signed logic transaction file, created by 
 ~$ ./sandbox goal clerk sign --infile unsigned.txn --outfile signed.txn
 ~$ ./sandbox copyFrom "signed.txn"
 ```
-
 
 ## Debugging for teal developers
 
