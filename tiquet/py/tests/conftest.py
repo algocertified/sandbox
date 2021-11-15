@@ -18,6 +18,7 @@ def pytest_configure(config):
 
 def pytest_runtest_setup(item):
     batch_ids = [mark.args[0] for mark in item.iter_markers(name="batch")]
-    if batch_ids:
-        if item.config.getoption("--batch") not in batch_ids:
+    batch_id_sel = item.config.getoption("--batch")
+    if batch_ids and batch_id_sel:
+        if batch_id_sel not in batch_ids:
             pytest.skip("test requires batch in {!r}".format(batch_ids))
