@@ -1466,7 +1466,7 @@ def test_resale_no_processing_fee(
     assert second_buyer_balance_after == second_buyer_balance_before
 
 
-# Buyer tries to purchase tiquet from reseller and pays the wrong amount for the 
+# Buyer tries to purchase tiquet from reseller and pays the wrong amount for the
 # processing fee to tiquet.io.
 @pytest.mark.batch("2")
 def test_resale_incorrect_processing_fee(
