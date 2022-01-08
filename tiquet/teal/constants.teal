@@ -9,6 +9,26 @@ txn ApplicationID
 int 0
 == 
 bnz create_constants
+txn OnCompletion
+int OptIn
+==
+bnz optin_app
+txn OnCompletion
+int NoOp
+==
+bnz oncompletion_app
+txn OnCompletion
+int CloseOut
+==
+bnz closeout_app
+txn OnCompletion
+int UpdateApplication
+==
+bnz update_app
+txn OnCompletion
+int DeleteApplication
+==
+bnz delete_app
 b failure
 
 //////////////////////
@@ -24,6 +44,33 @@ byte "PROCESSING_FEE_DENOMINATOR"
 int 1000
 app_global_put
 b success
+
+/////////////////////////////
+// Opt-In / On Completion  //
+/////////////////////////////
+
+optin_app:
+oncompletion_app:
+b failure
+
+//////////////
+// Closeout //
+//////////////
+
+closeout_app:
+b success
+
+//////////////////////////////////
+// Update / Delete Application  //
+//////////////////////////////////
+
+update_app:
+delete_app:
+addr {{TIQUET_IO_ADDRESS}}
+txn Sender
+==
+bnz success
+b failure
 
 /////////////////////
 // Application End //

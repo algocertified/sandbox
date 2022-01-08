@@ -48,7 +48,13 @@ class AdministratorClient:
                 "Constants App (Id: %d) already deployed." % self.constants_app_id
             )
 
-        app_prog = self.algorand_helper.get_prog(self.app_fpath)
+        var_assigns = {
+            "TIQUET_IO_ADDRESS": self.pk,
+        }
+
+        app_prog = self.algorand_helper.get_prog(
+            self.app_fpath, var_assigns=var_assigns
+        )
         clear_prog = self.algorand_helper.get_prog(self.clear_fpath)
 
         local_ints = 0

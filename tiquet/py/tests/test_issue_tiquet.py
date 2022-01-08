@@ -10,7 +10,7 @@ from tiquet.common import constants
 from tiquet.tiquet_issuer import TiquetIssuer
 
 
-# Issuer issues a new tiquet. 
+# Issuer issues a new tiquet.
 def test_issue_tiquet_success(
     tiquet_io_account,
     issuer_account,

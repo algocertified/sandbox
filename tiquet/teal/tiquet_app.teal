@@ -32,7 +32,6 @@ txn OnCompletion
 int DeleteApplication
 ==
 bnz delete_app
-// TODO: Handle other application ops.
 b failure
 
 /////////////////////
